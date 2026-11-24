@@ -1711,11 +1711,11 @@ export default function App() {
                       : 'bg-sky-50 text-sky-700 border border-sky-200/80'
                   }`}
                 >
-                  AirNav Indonesia
+                  AirNav Indonesia • ICAO Standard
                 </span>
               </div>
               <p className={`text-xs ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                MATS Part 3 • Vol. II – V ({QUESTION_BANK.length} Verified Unique Questions)
+                MATS Part 3 • Vol. II – V ({QUESTION_BANK.length} Verified ICAO Questions)
               </p>
             </div>
           </button>
