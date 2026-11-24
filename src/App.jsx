@@ -1,1180 +1,1191 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Plane,
   Radar,
   Sun,
   Moon,
+  Download,
+  Database,
+  Percent,
+  SlidersHorizontal,
+  AlertTriangle,
+  ShieldCheck,
   Play,
+  Layers,
+  Clock,
+  BookOpen,
   CheckCircle2,
   XCircle,
-  Clock,
+  ChevronRight,
   Award,
-  AlertTriangle,
   RotateCcw,
-  Home,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  SlidersHorizontal,
-  Timer,
-  Filter,
-  Flame,
-  Layers,
-  CheckSquare,
-  FileCheck2,
-  Zap,
-  Download,
-  PieChart,
-  Gauge,
-  Database
+  Smartphone,
+  Share,
+  PlusSquare,
+  Check,
+  WifiOff,
+  MonitorDown
 } from 'lucide-react';
 
 // ============================================================================
-// CORE VERIFIED QUESTION BANK (VOLUME II - VOLUME V, EASY / MEDIUM / HARD)
-// ============================================================================
-const CORE_QUESTIONS = [
-  // --------------------------------------------------------------------------
-  // VOLUME II — ATS GENERAL PROVISIONS & SEPARATION (Sections 3 & 4)
-  // --------------------------------------------------------------------------
-  {
-    id: "MATS-V2-001",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.1.1",
-    category: "Vol. II • Sec 3: ATS General Provisions",
-    difficulty: "Easy",
-    question: "Unit Area Control Centre (ACC) mana saja yang bertanggung jawab menyediakan pelayanan kontrol lalu lintas udara pada ruang udara jelajah (FL245 – FL600) di wilayah Indonesia menurut MATS Part 3 Volume II?",
-    options: [
-      "Jakarta Air Traffic Services Centre (JATSC) dan Makassar Air Traffic Services Centre (MATSC)",
-      "Halim ACC dan Sentani ACC",
-      "Denpasar ACC dan Medan ACC",
-      "Surabaya ACC dan Balikpapan ACC"
-    ],
-    correctIndex: 0,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 3.1.1, pelayanan kontrol pada upper airspace (FL245 – FL600) diselenggarakan oleh Jakarta Air Traffic Services Centre (JATSC) dan Makassar Air Traffic Services Centre (MATSC)."
-  },
-  {
-    id: "MATS-V2-002",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.9.1.1",
-    category: "Vol. II • Sec 3: Wake Turbulence",
-    difficulty: "Easy",
-    question: "Berdasarkan Maximum Certificated Take-Off Mass (MCTOM), kategori Wake Turbulence 'MEDIUM (M)' mencakup tipe pesawat dengan rentang massa sebesar:",
-    options: [
-      "136.000 kg atau lebih",
-      "Lebih dari 7.000 kg (15.500 lb) dan kurang dari 136.000 kg (300.000 lb)",
-      "7.000 kg atau kurang",
-      "Lebih dari 500.000 kg"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 3.9.1.1 c), kategori MEDIUM (M) berlaku untuk pesawat dengan certificated take-off mass kurang dari 136.000 kg dan lebih dari 7.000 kg."
-  },
-  {
-    id: "MATS-V2-003",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.4.1.2",
-    category: "Vol. II • Sec 3: Flight Plan",
-    difficulty: "Easy",
-    question: "Paling awal berapa jam sebelum Estimated Off-Block Time (EOBT) suatu Flight Plan dapat diajukan (submitted) ke unit ATS?",
-    options: [
-      "24 jam sebelum EOBT",
-      "48 jam sebelum EOBT",
-      "72 jam sebelum EOBT",
-      "120 jam (5 hari) sebelum EOBT"
-    ],
-    correctIndex: 3,
-    explanation: "Menurut MATS Part 3 Vol. II Section 3.4.1.2, Flight Plan dapat diajukan paling awal 120 jam (5 hari) sebelum Estimated Off-Block Time (EOBT)."
-  },
-  {
-    id: "MATS-V2-004",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.10.3.2",
-    category: "Vol. II • Sec 3: Altimeter Setting",
-    difficulty: "Easy",
-    question: "Bagaimana aturan pembulatan nilai tekanan atmosfer QNH atau QFE saat disampaikan kepada pesawat udara apabila nilainya memiliki angka desimal?",
-    options: [
-      "Dibulatkan ke atas ke satuan hectopascal penuh berikutnya",
-      "Dibulatkan ke bawah (rounded down) ke satuan whole hectopascal terdekat di bawahnya",
-      "Dibulatkan ke bilangan genap terdekat",
-      "Selalu disampaikan hingga dua angka di belakang koma"
-    ],
-    correctIndex: 1,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 3.10.3.2, nilai QNH dan QFE harus dibulatkan ke bawah (rounded down) ke whole hectopascal terdekat di bawahnya demi menjamin margin keamanan ketinggian."
-  },
-  {
-    id: "MATS-V2-005",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.13.3",
-    category: "Vol. II • Sec 3: Flight Progress Strips",
-    difficulty: "Easy",
-    question: "Berapa lama masa simpan minimum (retention period) untuk Flight Progress Strips kertas maupun rekaman data penerbangan elektronik menurut MATS Part 3 Vol. II?",
-    options: [
-      "Minimal 7 hari",
-      "Minimal 14 hari",
-      "Minimal 30 hari",
-      "Minimal 365 hari"
-    ],
-    correctIndex: 2,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 3.13.3, Flight Progress Strips harus disimpan untuk jangka waktu sekurang-kurangnya 30 hari (atau lebih lama jika dalam proses investigasi)."
-  },
-  {
-    id: "MATS-V2-006",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.3.2 a)",
-    category: "Vol. II • Sec 4: Vertical Separation",
-    difficulty: "Easy",
-    question: "Berapa standar Vertical Separation Minimum (VSM) yang berlaku untuk penerbangan di bawah FL290?",
-    options: [
-      "Nominal 500 ft (150 m)",
-      "Nominal 1.000 ft (300 m)",
-      "Nominal 2.000 ft (600 m)",
-      "Nominal 4.000 ft (1.200 m)"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 4.3.2 a), Vertical Separation Minimum (VSM) adalah nominal 300 m (1.000 ft) di bawah FL290."
-  },
-  {
-    id: "MATS-V2-007",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.3.2 b)",
-    category: "Vol. II • Sec 4: RVSM",
-    difficulty: "Easy",
-    question: "Berapa standar Vertical Separation Minimum (VSM) di dalam ruang udara RVSM antara FL290 hingga FL410 inklusif untuk pesawat yang memiliki persetujuan RVSM?",
-    options: [
-      "Nominal 500 ft (150 m)",
-      "Nominal 1.000 ft (300 m)",
-      "Nominal 2.000 ft (600 m)",
-      "Nominal 3.000 ft (900 m)"
-    ],
-    correctIndex: 1,
-    explanation: "Menurut MATS Part 3 Vol. II Section 4.3.2 b), di wilayah RVSM (FL290 hingga FL410 inklusif), VSM untuk pesawat RVSM-approved adalah nominal 300 m (1.000 ft)."
-  },
-  {
-    id: "MATS-V2-008",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.6.3.3",
-    category: "Vol. II • Sec 3: Speed Control",
-    difficulty: "Medium",
-    question: "Selama initial descent dari cruising level untuk pesawat turbojet, berapa batas pengurangan kecepatan minimum yang dapat diinstruksikan tanpa persetujuan awal awak pesawat?",
-    options: [
-      "Tidak kurang dari 210 kt IAS",
-      "Tidak kurang dari 250 kt (460 km/h) IAS",
-      "Tidak kurang dari 280 kt IAS",
-      "Tidak kurang dari 180 kt IAS"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 3.6.3.3, controller tidak boleh memberikan instruksi pengurangan kecepatan kurang dari 460 km/h (250 kt) IAS selama initial descent dari cruising level untuk pesawat turbojet tanpa persetujuan awak pesawat."
-  },
-  {
-    id: "MATS-V2-009",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.6.3.7",
-    category: "Vol. II • Sec 3: Speed Control",
-    difficulty: "Medium",
-    question: "Pada posisi manakah controller DILARANG menerapkan instruksi kontrol kecepatan (speed control) kepada pesawat yang sedang melaksanakan final approach?",
-    options: [
-      "Setelah pesawat melewati titik 7 km (4 NM) dari threshold runway",
-      "Sebelum pesawat melewati Initial Approach Fix (IAF)",
-      "Saat pesawat berada di atas FL100",
-      "Pada jarak 12 NM dari threshold runway"
-    ],
-    correctIndex: 0,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 3.6.3.7, kontrol kecepatan tidak boleh diterapkan pada pesawat setelah melewati titik 7 km (4 NM) dari threshold pada final approach."
-  },
-  {
-    id: "MATS-V2-010",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 3",
-    reference: "MATS Part 3, Vol. II, Sec. 3.10.1.1",
-    category: "Vol. II • Sec 3: Altimeter Setting",
-    difficulty: "Medium",
-    question: "Bagaimana posisi vertikal pesawat dinyatakan saat melintasi Transition Layer di sekitar aerodrome dan di dalam TMA?",
-    options: [
-      "Selalu dinyatakan dalam Altitude saat climbing maupun descending",
-      "Selalu dinyatakan dalam Flight Level saat climbing maupun descending",
-      "Dinyatakan dalam Flight Levels saat climbing, dan dalam Altitudes saat descending",
-      "Dinyatakan dalam Height di atas permukaan tanah"
-    ],
-    correctIndex: 2,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 3.10.1.1, saat melintasi transition layer, posisi vertikal pesawat dinyatakan dalam Flight Levels ketika climbing dan dalam Altitudes ketika descending."
-  },
-  {
-    id: "MATS-V2-011",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.1.2.1.1 a)",
-    category: "Vol. II • Sec 4: Lateral Separation",
-    difficulty: "Medium",
-    question: "Berapa kriteria sudut divergensi dan jarak minimum dari fasilitas VOR agar tercapai separasi lateral menggunakan VOR?",
-    options: [
-      "Kedua pesawat berada pada radial VOR yang berbeda minimal 15 derajat dan sekurang-kurangnya satu pesawat berada pada jarak 28 km (15 NM) atau lebih dari fasilitas",
-      "Sudut divergensi minimal 5 derajat dan jarak 5 NM dari VOR",
-      "Sudut divergensi minimal 30 derajat dan jarak 10 NM dari VOR",
-      "Sudut divergensi minimal 45 derajat dan jarak 3 NM dari VOR"
-    ],
-    correctIndex: 0,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 4.4.1.2.1.1 a), separasi lateral berbasis VOR tercapai apabila kedua pesawat berada pada radial yang divergen minimal 15° dan setidaknya satu pesawat berada pada jarak 28 km (15 NM) atau lebih dari fasilitas VOR."
-  },
-  {
-    id: "MATS-V2-012",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.2.2.1.1 c)",
-    category: "Vol. II • Sec 4: Longitudinal Separation",
-    difficulty: "Medium",
-    question: "Dalam kondisi apakah separasi longitudinal berbasis waktu pada same track dapat dikurangi menjadi 5 menit?",
-    options: [
-      "Apabila pesawat di belakang lebih cepat 10 kt dari pesawat di depan",
-      "Apabila pesawat di depan mempertahankan true airspeed (TAS) sekurang-kurangnya 37 km/h (20 kt) lebih cepat daripada pesawat di belakangnya",
-      "Apabila kedua pesawat berada di atas FL410 tanpa laporan posisi",
-      "Apabila kedua pesawat terbang pada malam hari"
-    ],
-    correctIndex: 1,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 4.4.2.2.1.1 c), separasi longitudinal waktu dapat dikurangi menjadi 5 menit apabila pesawat di depan mempertahankan TAS minimal 37 km/h (20 kt) lebih cepat dari pesawat di belakangnya."
-  },
-  {
-    id: "MATS-V2-013",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.2.4.1",
-    category: "Vol. II • Sec 4: Mach Number Technique",
-    difficulty: "Medium",
-    question: "Dalam penerapan Mach Number Technique (MNT), berapa separasi longitudinal minimum apabila pesawat di depan mempertahankan angka Mach yang sama atau lebih besar dari pesawat di belakangnya?",
-    options: [
-      "5 menit",
-      "10 menit",
-      "15 menit",
-      "20 menit"
-    ],
-    correctIndex: 1,
-    explanation: "Menurut MATS Part 3 Vol. II Section 4.4.2.4.1 a), separasi longitudinal minimum dengan Mach Number Technique (MNT) adalah 10 menit apabila pesawat di depan mempertahankan true Mach number yang sama atau lebih besar."
-  },
-  {
-    id: "MATS-V2-014",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.2.7.2",
-    category: "Vol. II • Sec 4: ADS-B ITP",
-    difficulty: "Hard",
-    question: "Berapa jarak separasi minimum dan perbedaan kecepatan maksimum dalam prosedur ADS-B In-Trail Procedure (ITP) untuk pesawat yang melakukan climb/descent melewati reference aircraft?",
-    options: [
-      "Minimal 15 NM dengan selisih ground speed maks 20 kt, atau minimal 20 NM dengan selisih ground speed maks 30 kt",
-      "Minimal 5 NM dengan selisih ground speed maks 50 kt",
-      "Minimal 30 NM dengan selisih ground speed maks 10 kt",
-      "Minimal 10 NM dengan selisih ground speed maks 40 kt"
-    ],
-    correctIndex: 0,
-    explanation: "Berdasarkan MATS Part 3 Vol. II Section 4.4.2.7.2, jarak ITP minimum adalah 28 km (15 NM) dengan perbedaan ground speed positif maksimum 37 km/h (20 kt), atau 37 km (20 NM) dengan perbedaan ground speed positif maksimum 56 km/h (30 kt)."
-  },
-  {
-    id: "MATS-V2-015",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.2.8.1",
-    category: "Vol. II • Sec 4: ADS-C CDP",
-    difficulty: "Hard",
-    question: "Dalam penerapan ADS-C Climb and Descend Procedure (CDP) pada same track, jarak longitudinal minimum yang diizinkan ketika following aircraft lebih cepat tidak lebih dari 10 kt atau Mach 0.02 dibanding preceding aircraft adalah:",
-    options: [
-      "15 NM dengan batas beda ketinggian maksimal 1.000 ft dan re-establish separasi vertikal dalam 10 menit",
-      "25 NM (46,3 km) dengan batas beda ketinggian maksimal 2.000 ft (600 m) dan re-establish separasi vertikal dalam 15 menit",
-      "30 NM dengan batas beda ketinggian maksimal 2.000 ft dan re-establish separasi vertikal dalam 15 menit",
-      "25 NM dengan batas beda ketinggian maksimal 4.000 ft dan re-establish separasi vertikal dalam 20 menit"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 4.4.2.8.1 mensyaratkan jarak minimal 46,3 km (25 NM) jika following aircraft lebih cepat ≤ 10 kt/Mach 0.02, beda altitude tidak lebih dari 600 m (2.000 ft), FoM ≥ 6, dan separasi vertikal harus kembali terbentuk dalam 15 menit."
-  },
-  {
-    id: "MATS-V2-016",
-    part: "Part 3",
-    volume: "Volume II",
-    section: "Section 4",
-    reference: "MATS Part 3, Vol. II, Sec. 4.4.2.6.2",
-    category: "Vol. II • Sec 4: RNP 10 Separation",
-    difficulty: "Hard",
-    question: "Dalam penerapan separasi longitudinal berbasis jarak RNP 10 (93 km / 50 NM), berapa interval maksimum pelaporan posisi pesawat dan batas keterlambatan laporan sebelum separasi lain harus segera diterapkan?",
-    options: [
-      "Interval pelaporan setiap 60 menit; keterlambatan 10 menit",
-      "Interval pelaporan tidak lebih dari 24 menit; jika laporan terlambat melebihi 3 menit (ADS-C) atau 8 menit (voice/CPDLC), separasi alternatif wajib segera diterapkan",
-      "Interval pelaporan setiap 15 menit; keterlambatan 20 menit",
-      "Tidak memerlukan pelaporan posisi periodik"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. II Section 4.4.2.6.2, separasi RNP 10 (50 NM) mensyaratkan pelaporan posisi setidaknya setiap 24 menit; jika laporan terlambat melebihi 3 menit (ADS-C) atau 8 menit (voice/CPDLC) dan komunikasi tidak segera pulih, separasi alternatif wajib segera diterapkan."
-  },
-
-  // --------------------------------------------------------------------------
-  // VOLUME III — AERODROME CONTROL PROCEDURES (Sections 5 & 6)
-  // --------------------------------------------------------------------------
-  {
-    id: "MATS-V3-001",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.9.3.3",
-    category: "Vol. III • Sec 6: Take-Off Procedures",
-    difficulty: "Easy",
-    question: "Kapan ekspresi 'TAKE-OFF' diperbolehkan digunakan dalam komunikasi radiotelefoni oleh Aerodrome Controller?",
-    options: [
-      "Saat memberikan instruksi line-up and wait di runway",
-      "Hanya ketika pesawat diberikan clearance for take-off atau saat membatalkan take-off clearance",
-      "Saat menginformasikan kesiapan urutan keberangkatan kepada pesawat di holding point",
-      "Setiap kali menyebut take-off run available atau instruksi persiapan lepas landas"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 6.9.3.3 menegaskan bahwa ekspresi TAKE-OFF hanya digunakan dalam radiotelefoni ketika pesawat diberi izin lepas landas atau saat membatalkan izin lepas landas."
-  },
-  {
-    id: "MATS-V3-002",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.1.2.3",
-    category: "Vol. III • Sec 6: TWR Alerting",
-    difficulty: "Easy",
-    question: "Jika sebuah pesawat yang telah ditransfer ke Aerodrome Control Tower gagal melapor, atau setelah melapor kehilangan kontak radio dan tidak mendarat dalam waktu berapa menit setelah expected landing time, Tower wajib melaporkannya ke unit APP/ACC/FIC atau RCC?",
-    options: [
-      "3 menit",
-      "5 menit",
-      "10 menit",
-      "15 menit"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 6.1.2.3 menetapkan batas waktu 5 menit setelah expected landing time bagi TWR untuk melaporkan ke unit APP/ACC/FIC atau RCC/RSC."
-  },
-  {
-    id: "MATS-V3-003",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.4.1",
-    category: "Vol. III • Sec 6: Traffic Circuit",
-    difficulty: "Easy",
-    question: "Ke arah manakah seluruh belokan (turns) standar dalam aerodrome traffic circuit harus dilakukan apabila tidak ada instruksi atau publikasi prosedur yang berbeda?",
-    options: [
-      "Seluruh belokan dilakukan ke kanan (right-hand circuit)",
-      "Seluruh belokan dilakukan ke kiri (left-hand circuit)",
-      "Selalu zig-zag menyesuaikan arah angin",
-      "Bebas ditentukan oleh masing-masing pilot"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. III Section 6.4.1, secara standar seluruh belokan pada aerodrome traffic circuit harus dilakukan ke kiri (left-hand circuit), kecuali diinstruksikan atau dipublikasikan sebaliknya."
-  },
-  {
-    id: "MATS-V3-004",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.13.4",
-    category: "Vol. III • Sec 6: Aerodrome Lighting",
-    difficulty: "Easy",
-    question: "Apa fungsi utama Stop Bars yang dipasang pada runway-holding positions yang terhubung dengan runway aktif?",
-    options: [
-      "Menunjukkan batas area parkir mobil petugas",
-      "Memberikan sinyal visual lampu merah melintang yang tidak boleh dilintasi oleh pesawat maupun kendaraan sebelum lampu stop bar dimatikan oleh controller dan clearance diberikan",
-      "Menandai titik awal lepas landas di tengah runway",
-      "Memberikan penerangan bagi penumpang yang berjalan kaki di apron"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. III Section 6.13.4, stop bars yang menyala merah merupakan perintah berhenti mutlak; tidak ada pesawat atau kendaraan yang boleh melintasi stop bar yang menyala hingga dimatikan oleh controller."
-  },
-  {
-    id: "MATS-V3-005",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 5",
-    reference: "MATS Part 3, Vol. III, Sec. 5.5.2.3",
-    category: "Vol. III • Sec 5: Parallel Runways",
-    difficulty: "Easy",
-    question: "Dalam operasi pendekatan paralel independen (independent parallel approaches), zona ruang udara dengan dimensi tertentu yang terletak di tengah antara dua extended runway centrelines dan dimonitor untuk mencegah penyimpangan pesawat disebut apa?",
-    options: [
-      "Clearway (CWY)",
-      "No-Transgression Zone (NTZ)",
-      "Runway End Safety Area (RESA)",
-      "Touchdown Zone (TDZ)"
-    ],
-    correctIndex: 1,
-    explanation: "Sesuai MATS Part 3 Vol. III Section 5.5.2.3, No-Transgression Zone (NTZ) adalah koridor ruang udara yang ditetapkan di antara dua Normal Operating Zones (NOZ) pada parallel approaches."
-  },
-  {
-    id: "MATS-V3-006",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 5",
-    reference: "MATS Part 3, Vol. III, Sec. 5.7.2.2",
-    category: "Vol. III • Sec 5: Parallel Departures",
-    difficulty: "Medium",
-    question: "Pada operasi Independent Parallel Departures menggunakan prosedur instrumen RNAV atau RNP, berapa sudut divergensi minimum lintasan keberangkatan nominal setelah lepas landas yang diizinkan jika jarak antar sumbu runway minimal 760 m (2.500 ft)?",
-    options: [
-      "10 derajat dengan belokan dimulai tidak lebih dari 2,0 NM dari ujung keberangkatan runway",
-      "15 derajat dengan belokan dimulai tidak lebih dari 3,0 NM dari ujung keberangkatan runway",
-      "5 derajat segera setelah melewati ketinggian 400 ft AGL",
-      "10 derajat dengan belokan dimulai setelah melewati ketinggian 1.000 ft AGL"
-    ],
-    correctIndex: 0,
-    explanation: "Sec. 5.7.2.2 b) 2) mengizinkan divergensi 10 derajat (turun dari standar 15 derajat) jika kedua pesawat terbang dengan prosedur RNAV/RNP dan belokan dimulai tidak lebih dari 3,7 km (2,0 NM) dari departure end of runway."
-  },
-  {
-    id: "MATS-V3-007",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.2.6",
-    category: "Vol. III • Sec 6: Runway-in-Use",
-    difficulty: "Medium",
-    question: "Dalam kondisi manakah faktor noise abatement TIDAK boleh dijadikan faktor penentu dalam pemilihan runway-in-use untuk operasi pendaratan?",
-    options: [
-      "Ceiling lebih rendah dari 1.000 ft atau visibility kurang dari 5.000 m",
-      "Ceiling lebih rendah dari 500 ft (150 m) di atas elevasi aerodrome atau visibility kurang dari 1.900 m",
-      "Komponen tailwind melebihi 3 kt pada runway kering",
-      "Hanya tersedia pendekatan non-presisi VOR/DME dengan visibility 3.000 m"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 6.2.6 b) 1) melarang penggunaan noise abatement sebagai faktor penentu jika ceiling < 150 m (500 ft) di atas aerodrome elevation atau visibility < 1.900 m (atau kondisi permukaan runway terkontaminasi)."
-  },
-  {
-    id: "MATS-V3-008",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 5",
-    reference: "MATS Part 3, Vol. III, Sec. 5.7.1.2",
-    category: "Vol. III • Sec 5: Wake Turbulence TWR",
-    difficulty: "Medium",
-    question: "Berapa separasi waktu Wake Turbulence non-radar minimum apabila pesawat LIGHT atau MEDIUM lepas landas dari bagian tengah runway (intermediate part of the same runway) di belakang pesawat HEAVY?",
-    options: [
-      "1 menit",
-      "2 menit",
-      "3 menit",
-      "5 menit"
-    ],
-    correctIndex: 2,
-    explanation: "Sesuai MATS Part 3 Vol. III Section 5.7.1.2, apabila pesawat LIGHT atau MEDIUM berangkat dari intermediate part of the same runway di belakang pesawat HEAVY, separasi waktu minimum adalah 3 menit."
-  },
-  {
-    id: "MATS-V3-009",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.12.3",
-    category: "Vol. III • Sec 6: Low Visibility Procedures",
-    difficulty: "Medium",
-    question: "Selama pemberlakuan Low Visibility Procedures (LVP), titik henti (holding position) manakah yang wajib digunakan oleh pesawat sebelum memasuki runway untuk melindungi sinyal ILS?",
-    options: [
-      "Apron edge line",
-      "CAT II/III runway-holding position yang lebih jauh dari centerline runway",
-      "Touchdown zone marking",
-      "Runway end lights"
-    ],
-    correctIndex: 1,
-    explanation: "Berdasarkan MATS Part 3 Vol. III Section 6.12.3, selama LVP, pesawat yang menunggu izin masuk runway wajib ditahan pada CAT II/III holding position guna menjaga integritas sinyal ILS critical dan sensitive areas."
-  },
-  {
-    id: "MATS-V3-010",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 6",
-    reference: "MATS Part 3, Vol. III, Sec. 6.11.7 a) 2)",
-    category: "Vol. III • Sec 6: Reduced Runway Separation",
-    difficulty: "Hard",
-    question: "Pada penerapan Reduced Runway Separation Minima (RRSM) di siang hari (30 menit setelah sunrise hingga 30 menit sebelum sunset), pesawat Category 2 yang akan mendarat diizinkan melintasi runway threshold di belakang pesawat Category 1 yang telah mendarat apabila pesawat pendahulu tersebut telah melewati titik minimal sejauh:",
-    options: [
-      "600 m dari threshold runway dan sedang bergerak untuk meninggalkan runway tanpa backtracking",
-      "1.500 m dari threshold runway, sedang bergerak dan akan meninggalkan runway tanpa backtracking",
-      "2.400 m dari threshold runway dan berada di luar runway-holding position",
-      "1.000 m dari threshold runway dengan komponen tailwind tidak melebihi 10 kt"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 6.11.7 a) 2) menetapkan jarak minimum 1.500 m dari runway threshold untuk succeeding landing Category 2 di belakang Category 1 atau 2."
-  },
-  {
-    id: "MATS-V3-011",
-    part: "Part 3",
-    volume: "Volume III",
-    section: "Section 5",
-    reference: "MATS Part 3, Vol. III, Sec. 5.7.3.2.4",
-    category: "Vol. III • Sec 5: Independent Parallel Approaches",
-    difficulty: "Hard",
-    question: "Ketika memvektor pesawat untuk mencegat final approach course/track pada operasi Independent Parallel Approaches, vektor terakhir (final vector) wajib memenuhi ketentuan geometri penerbangan berikut, KECUALI:",
-    options: [
-      "Sudut intersepsi tidak lebih besar dari 30 derajat",
-      "Memberikan penerbangan lurus dan datar (straight and level flight) minimal 1,0 NM sebelum memotong final approach course/track",
-      "Memungkinkan pesawat established pada final approach course/track dalam kondisi level flight minimal 2,0 NM sebelum memotong glide path",
-      "Sudut intersepsi tidak lebih besar dari 45 derajat dengan jarak level flight minimal 1,5 NM sebelum glide path"
-    ],
-    correctIndex: 3,
-    explanation: "Sec. 5.7.3.2.4 menetapkan sudut intersepsi maks 30°, minimal 1,9 km (1,0 NM) straight & level sebelum intercept localizer/track, dan minimal 3,7 km (2,0 NM) level flight sebelum intercept glide path."
-  },
-
-  // --------------------------------------------------------------------------
-  // VOLUME IV — ATS SURVEILLANCE, FIS & COORDINATION (Sections 7, 8 & 9)
-  // --------------------------------------------------------------------------
-  {
-    id: "MATS-V4-001",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.5.5.1.1",
-    category: "Vol. IV • Sec 7: ATS Surveillance",
-    difficulty: "Easy",
-    question: "Berapa nilai toleransi (tolerance value) yang digunakan untuk menentukan keakuratan informasi ketinggian berbasis pressure-altitude (Mode C / Mode S / ADS-B) yang ditampilkan pada situation display controller di dalam airspace RVSM?",
-    options: [
-      "±30 m (±100 ft)",
-      "±60 m (±200 ft)",
-      "±90 m (±300 ft)",
-      "±150 m (±500 ft)"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 7.5.5.1.1 menetapkan nilai toleransi ±60 m (±200 ft) dalam airspace RVSM (dan ±90 m / ±300 ft di luar airspace RVSM)."
-  },
-  {
-    id: "MATS-V4-002",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.7.3.1",
-    category: "Vol. IV • Sec 7: Surveillance Separation",
-    difficulty: "Easy",
-    question: "Kecuali ditetapkan lain berdasarkan kemampuan sistem surveillance tertentu atau pendekatan paralel, berapa standar horizontal separation minimum berbasis radar, ADS-B, dan/atau MLAT?",
-    options: [
-      "5,6 km (3,0 NM)",
-      "9,3 km (5,0 NM)",
-      "18,5 km (10,0 NM)",
-      "4,6 km (2,5 NM)"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 7.7.3.1 menetapkan standar dasar separasi horizontal berbasis sistem ATS surveillance sebesar 9,3 km (5,0 NM)."
-  },
-  {
-    id: "MATS-V4-003",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.8.1.2",
-    category: "Vol. IV • Sec 7: SSR Emergency Codes",
-    difficulty: "Easy",
-    question: "Kode transponder SSR manakah yang harus disetel oleh pesawat yang mengalami pembajakan (unlawful interference), kegagalan komunikasi radio (RCF), dan keadaan darurat umum (emergency)?",
-    options: [
-      "7500 (unlawful interference), 7600 (radio failure), dan 7700 (emergency)",
-      "7700 (unlawful interference), 7500 (radio failure), dan 7600 (emergency)",
-      "7600 (unlawful interference), 7700 (radio failure), dan 7500 (emergency)",
-      "2000 (unlawful interference), 1200 (radio failure), dan 0000 (emergency)"
-    ],
-    correctIndex: 0,
-    explanation: "Sesuai MATS Part 3 Vol. IV Section 7.8.1.2, kode SSR khusus darurat adalah: 7500 untuk unlawful interference, 7600 untuk radio communication failure, dan 7700 untuk general emergency."
-  },
-  {
-    id: "MATS-V4-004",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 8",
-    reference: "MATS Part 3, Vol. IV, Sec. 8.2.2.1",
-    category: "Vol. IV • Sec 8: Alerting Service",
-    difficulty: "Easy",
-    question: "Apa tiga tingkatan fase darurat (emergency phases) yang ditetapkan dalam Alerting Service untuk mengklasifikasikan kondisi pesawat yang memerlukan bantuan SAR?",
-    options: [
-      "ALPHA, BRAVO, dan CHARLIE",
-      "INCERFA (Uncertainty phase), ALERFA (Alert phase), dan DETRESFA (Distress phase)",
-      "CAUTION, WARNING, dan DANGER",
-      "LEVEL 1, LEVEL 2, dan LEVEL 3"
-    ],
-    correctIndex: 1,
-    explanation: "Berdasarkan MATS Part 3 Vol. IV Section 8.2.2.1, tiga fase darurat dalam Alerting Service adalah INCERFA, ALERFA, dan DETRESFA."
-  },
-  {
-    id: "MATS-V4-005",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 9",
-    reference: "MATS Part 3, Vol. IV, Sec. 9.5.3.2",
-    category: "Vol. IV • Sec 9: Coordination & AIDC",
-    difficulty: "Easy",
-    question: "Dalam proses negosiasi kondisi transfer melalui pesan koordinasi atau sistem AIDC, pesan apakah yang dikirimkan untuk mengusulkan perubahan kondisi transfer dan pesan apakah yang dikirimkan untuk menyetujuinya?",
-    options: [
-      "Coordination Message (CDN) untuk mengusulkan revisi, dan Acceptance Message (ACP) untuk menyetujui kondisi transfer",
-      "SIGMET untuk mengusulkan revisi, dan ATIS untuk menyetujuinya",
-      "NOTAM untuk mengusulkan revisi, dan METAR untuk menyetujuinya",
-      "MAYDAY untuk mengusulkan revisi, dan PAN-PAN untuk menyetujuinya"
-    ],
-    correctIndex: 0,
-    explanation: "Berdasarkan MATS Part 3 Vol. IV Section 9.5.3.2, Coordination Message (CDN) digunakan untuk mengusulkan perubahan terhadap kondisi transfer, sedangkan Acceptance Message (ACP) untuk menyatakan persetujuan."
-  },
-  {
-    id: "MATS-V4-006",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.6.2.4.1 d)",
-    category: "Vol. IV • Sec 7: Radar Identification",
-    difficulty: "Medium",
-    question: "Dalam metode identifikasi pesawat menggunakan PSR (Primary Surveillance Radar), perubahan heading yang diinstruksikan kepada pilot untuk mengorelasikan pergerakan target di layar harus sebesar:",
-    options: [
-      "15 derajat atau lebih",
-      "20 derajat atau lebih",
-      "30 derajat atau lebih",
-      "45 derajat atau lebih"
-    ],
-    correctIndex: 2,
-    explanation: "Sec. 7.6.2.4.1 d) mensyaratkan perubahan heading sebesar 30 derajat atau lebih untuk identifikasi PSR."
-  },
-  {
-    id: "MATS-V4-007",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 8",
-    reference: "MATS Part 3, Vol. IV, Sec. 8.1.4.1.3",
-    category: "Vol. IV • Sec 8: Air Traffic Advisory",
-    difficulty: "Medium",
-    question: "Pada penyelenggaraan Air Traffic Advisory Service di dalam ruang udara kelas F (advisory airspace/routes), bagaimana sifat instruksi yang diberikan oleh unit ATS kepada pesawat udara?",
-    options: [
-      "Menerbitkan ATC clearance yang mengikat secara penuh untuk mencegah tabrakan",
-      "Tidak menerbitkan clearances, melainkan hanya memberikan advisory information dengan menggunakan kata 'advise' atau 'suggest'",
-      "Memberikan vektor radar wajib untuk memisahkan lalu lintas IFR dan VFR",
-      "Hanya memberikan informasi meteorologi tanpa saran penghindaran lalu lintas"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 8.1.4.1.3 menegaskan bahwa Air Traffic Advisory Service tidak memberikan 'clearances' tetapi hanya 'advisory information' menggunakan kata 'advise' atau 'suggest'."
-  },
-  {
-    id: "MATS-V4-008",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.7.3.1",
-    category: "Vol. IV • Sec 7: Surveillance Wake Turbulence",
-    difficulty: "Medium",
-    question: "Berapa jarak Wake Turbulence Separation Minima berbasis ATS surveillance untuk pesawat kategori LIGHT (L) yang terbang di belakang pesawat kategori SUPER (A380-800)?",
-    options: [
-      "5 NM (9,3 km)",
-      "6 NM (11,1 km)",
-      "7 NM (13,0 km)",
-      "8 NM (14,8 km)"
-    ],
-    correctIndex: 3,
-    explanation: "Menurut MATS Part 3 Vol. IV Section 7.7.3.1, jarak separasi wake turbulence berbasis surveillance di belakang kategori SUPER adalah 6 NM (HEAVY), 7 NM (MEDIUM), dan 8 NM / 14,8 km (LIGHT)."
-  },
-  {
-    id: "MATS-V4-009",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.7.3.2 b)",
-    category: "Vol. IV • Sec 7: Reduced Surveillance Separation",
-    difficulty: "Hard",
-    question: "Penerapan reduksi separasi surveillance menjadi 4,6 km (2,5 NM) antara pesawat berurutan di final approach track dalam jarak 10 NM dari threshold hanya dapat dilakukan apabila seluruh persyaratan terpenuhi, termasuk average runway occupancy time (ROT) pesawat mendarat tidak melebihi:",
-    options: [
-      "40 detik dan update rate surveillance ≤ 4 detik",
-      "50 detik dan update rate surveillance ≤ 5 detik",
-      "60 detik dan update rate surveillance ≤ 5 detik",
-      "45 detik dan update rate surveillance ≤ 3 detik"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 7.7.3.2 b) i) & iii) mensyaratkan rata-rata ROT tidak melebihi 50 detik, update rate sistem surveillance 5 detik atau kurang, braking action baik, dan tidak berlaku separasi wake turbulence jarak."
-  },
-  {
-    id: "MATS-V4-010",
-    part: "Part 3",
-    volume: "Volume IV",
-    section: "Section 7",
-    reference: "MATS Part 3, Vol. IV, Sec. 7.7.2.4",
-    category: "Vol. IV • Sec 7: Display Separation Measurement",
-    difficulty: "Hard",
-    question: "Bagaimana cara mengukur jarak separasi pada situation display ketika memisahkan dua pesawat di mana satu target ditampilkan menggunakan PSR blip dan target lainnya menggunakan SSR response?",
-    options: [
-      "Dari pusat PSR blip ke pusat SSR response",
-      "Dari tepi terdekat PSR blip ke tepi terdekat SSR response",
-      "Dari pusat PSR blip ke tepi terdekat SSR response",
-      "Dari tepi terjauh PSR blip ke pusat SSR response"
-    ],
-    correctIndex: 2,
-    explanation: "Sec. 7.7.2.4 mengatur pengukuran dari centre of the PSR blip ke nearest edge of the SSR response (sedangkan antar dua SSR response diukur dari closest edges per Sec. 7.7.2.6)."
-  },
-
-  // --------------------------------------------------------------------------
-  // VOLUME V — COMMUNICATIONS & CONTINGENCY PROCEDURES (Sections 10 - 15)
-  // --------------------------------------------------------------------------
-  {
-    id: "MATS-V5-001",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 10",
-    reference: "MATS Part 3, Vol. V, Sec. 10.1.2",
-    category: "Vol. V • Sec 10: ATS Messages & AFTN",
-    difficulty: "Easy",
-    question: "Dalam pengiriman pesan ATS melalui jaringan AFTN, indikator prioritas (Priority Indicator) manakah yang digunakan untuk pesan kategori Urgency messages (termasuk fase Alert atau Uncertainty)?",
-    options: [
-      "SS",
-      "DD",
-      "FF",
-      "GG"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 10.1.2 menetapkan prioritas SS untuk distress, DD untuk urgency (alert/uncertainty phase), dan FF (atau lebih tinggi) untuk radiocommunication failure/emergency lainnya."
-  },
-  {
-    id: "MATS-V5-002",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 11",
-    reference: "MATS Part 3, Vol. V, Sec. 11.4.3.8",
-    category: "Vol. V • Sec 11: Phraseologies",
-    difficulty: "Easy",
-    question: "Phraseology standar yang diucapkan oleh controller untuk meminta penangguhan sementara operasi transponder pesawat adalah:",
-    options: [
-      "STOP SQUAWK",
-      "SQUAWK STANDBY",
-      "SQUAWK LOW",
-      "RESET SQUAWK"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 11.4.3.8 menetapkan phraseology 'SQUAWK STANDBY' untuk temporary suspension of transponder operation."
-  },
-  {
-    id: "MATS-V5-003",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 10",
-    reference: "MATS Part 3, Vol. V, Sec. 10.2.1",
-    category: "Vol. V • Sec 10: Movement & Control Messages",
-    difficulty: "Easy",
-    question: "Singkatan tiga huruf standar pesan ATS manakah yang digunakan untuk menyatakan Modification Message dan Arrival Message pada jaringan AFTN?",
-    options: [
-      "CHG (Modification) dan ARR (Arrival)",
-      "MOD (Modification) dan LND (Arrival)",
-      "REV (Modification) dan TDN (Arrival)",
-      "AMD (Modification) dan FIN (Arrival)"
-    ],
-    correctIndex: 0,
-    explanation: "Sesuai MATS Part 3 Vol. V Section 10.2.1, designator standar ICAO/MATS adalah CHG untuk Modification message dan ARR untuk Arrival message."
-  },
-  {
-    id: "MATS-V5-004",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 13",
-    reference: "MATS Part 3, Vol. V, Sec. 13.1.2",
-    category: "Vol. V • Sec 13: CPDLC Procedures",
-    difficulty: "Easy",
-    question: "Apa kepanjangan dari CPDLC dalam penyelenggaraan layanan komunikasi data antara controller dan pilot pada MATS Part 3 Volume V Section 13?",
-    options: [
-      "Controller-Pilot Data Link Communications",
-      "Centralized Position Data Link Control",
-      "Continuous Pilot Digital Link Channel",
-      "Control Procedure Data Location Center"
-    ],
-    correctIndex: 0,
-    explanation: "CPDLC adalah singkatan dari Controller-Pilot Data Link Communications yang diatur dalam MATS Part 3 Vol. V Section 13."
-  },
-  {
-    id: "MATS-V5-005",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 11",
-    reference: "MATS Part 3, Vol. V, Sec. 11.3.1",
-    category: "Vol. V • Sec 11: ATS Phraseologies",
-    difficulty: "Easy",
-    question: "Ketika controller ingin membatalkan instruksi pembatasan kecepatan (speed restriction) sebelumnya dan mengizinkan pilot terbang sesuai kecepatan normal pesawat, phraseology standar yang digunakan adalah:",
-    options: [
-      "RESUME NORMAL SPEED",
-      "CANCEL ALL SPEEDS",
-      "FLY MAXIMUM VELOCITY",
-      "NO SPEED LIMIT NOW"
-    ],
-    correctIndex: 0,
-    explanation: "Sesuai MATS Part 3 Vol. V Section 11.3.1, phraseology standar untuk membatalkan pembatasan kecepatan adalah 'RESUME NORMAL SPEED'."
-  },
-  {
-    id: "MATS-V5-006",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 14",
-    reference: "MATS Part 3, Vol. V, Sec. 14.3.3 b) 2)",
-    category: "Vol. V • Sec 14: Radio Comm Failure (RCF)",
-    difficulty: "Medium",
-    question: "Apabila sebuah pesawat mengalami air-ground communications failure dalam kondisi IMC di ruang udara yang menggunakan layanan ATS surveillance, berapa lama pesawat harus mempertahankan last assigned speed and level (atau MFA jika lebih tinggi)?",
-    options: [
-      "5 menit",
-      "7 menit",
-      "15 menit",
-      "20 menit"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 14.3.3 b) 2) menetapkan waktu 7 menit untuk airspace dengan ATS surveillance (sedangkan 20 menit berlaku untuk airspace dengan procedural separation per Sec. 14.3.3 b) 1))."
-  },
-  {
-    id: "MATS-V5-007",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 15",
-    reference: "MATS Part 3, Vol. V, Sec. 15.5.4 a)",
-    category: "Vol. V • Sec 15: SLOP",
-    difficulty: "Medium",
-    question: "Pada penerapan Strategic Lateral Offset Procedures (SLOP) di ruang udara en-route dengan jarak antar sumbu rute 15 NM atau lebih, ke arah mana dan sejauh berapa offset maksimum yang diizinkan?",
-    options: [
-      "Ke kiri atau ke kanan dari centre line hingga maksimum 2 NM",
-      "Ke kanan dari centre line relatif terhadap arah terbang dalam kelipatan persepuluh NM hingga maksimum 2 NM (3,7 km)",
-      "Ke kanan dari centre line hingga maksimum 0,5 NM (0,9 km)",
-      "Ke kanan dari centre line hingga maksimum 5 NM dengan wajib melapor ke ATC terlebih dahulu"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 15.5.4 a) mengizinkan offset ke kanan centre line dalam tenths of a nautical mile hingga maksimum 3,7 km (2 NM) untuk spacing ≥ 15 NM, dan pilot tidak wajib melapor ke ATC."
-  },
-  {
-    id: "MATS-V5-008",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 12",
-    reference: "MATS Part 3, Vol. V, Sec. 12.2.3",
-    category: "Vol. V • Sec 12: ADS-C Contracts",
-    difficulty: "Medium",
-    question: "Apa saja tiga jenis kontrak pelaporan standar (ADS-C reporting contracts) yang dapat diinisiasi oleh sistem darat ATS kepada pesawat yang dilengkapi ADS-C?",
-    options: [
-      "Periodic contract, Event contract, dan Demand contract",
-      "Static contract, Dynamic contract, dan Manual contract",
-      "Radar contract, Voice contract, dan Visual contract",
-      "Primary contract, Secondary contract, dan Tertiary contract"
-    ],
-    correctIndex: 0,
-    explanation: "Sesuai MATS Part 3 Vol. V Section 12.2.3, sistem darat ATS menggunakan tiga tipe kontrak ADS-C: Periodic contract (berdasarkan interval waktu), Event contract (perubahan level/waypoint/deviasi), dan Demand contract (permintaan tunggal segera)."
-  },
-  {
-    id: "MATS-V5-009",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 15",
-    reference: "MATS Part 3, Vol. V, Sec. 15.3.2",
-    category: "Vol. V • Sec 15: Unmanned Free Balloons",
-    difficulty: "Medium",
-    question: "Klasifikasi balon bebas tak berawak (Unmanned Free Balloons) kategori 'HEAVY' didefinisikan apabila membawa muatan (payload) satu atau lebih paket dengan total massa sebesar:",
-    options: [
-      "Kurang dari 4 kg",
-      "4 kg atau lebih dan kurang dari 6 kg",
-      "6 kg atau lebih",
-      "25 kg atau lebih"
-    ],
-    correctIndex: 2,
-    explanation: "Berdasarkan MATS Part 3 Vol. V Section 15.3.2, Unmanned Free Balloon diklasifikasikan sebagai HEAVY apabila total massa payload sebesar 6 kg atau lebih (Medium: 4 kg s.d. <6 kg; Light: <4 kg)."
-  },
-  {
-    id: "MATS-V5-010",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 14",
-    reference: "MATS Part 3, Vol. V, Sec. 14.9.3.2 a)",
-    category: "Vol. V • Sec 14: TIBA Procedures",
-    difficulty: "Hard",
-    question: "Dalam prosedur Traffic Information Broadcast by Aircraft (TIBA), apabila setelah menerima siaran TIBA dari pesawat lain seorang pilot memutuskan perlu tindakan segera untuk menghindari risiko tabrakan yang mendesak, tindakan vertikal standar di ruang udara di atas FL290 dengan VSM 2.000 ft adalah:",
-    options: [
-      "Segera climb 500 ft dan menyalakan seluruh lampu pesawat",
-      "Segera descend 150 m (500 ft)",
-      "Segera descend 300 m (1.000 ft), menyalakan seluruh lampu pesawat, dan membalas broadcast secepat mungkin",
-      "Melakukan lateral offset 5 NM ke kiri dari jalur penerbangan"
-    ],
-    correctIndex: 2,
-    explanation: "Sec. 14.9.3.2 a) mengatur immediate descent 150 m (500 ft), atau 300 m (1.000 ft) jika di atas FL 290 pada area dengan VSM 600 m (2.000 ft), menyalakan seluruh lampu, dan melapor."
-  },
-  {
-    id: "MATS-V5-011",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 14",
-    reference: "MATS Part 3, Vol. V, Sec. 14.10.4",
-    category: "Vol. V • Sec 14: Contingency & INMC",
-    difficulty: "Hard",
-    question: "Ketika terjadi gangguan operasional berskala nasional atau kegagalan fasilitas CNSD berkepanjangan yang memicu koordinasi Indonesia Network Management Centre (INMC), bagaimana pembagian tanggung jawab operasional antara INMC dan unit ATS (seperti JATSC/MATSC)?",
-    options: [
-      "Tanggung jawab pengendalian separasi lalu lintas udara dialihkan sementara ke INMC hingga kondisi kontingensi berakhir",
-      "Pembentukan koordinasi INMC tidak mengalihkan atau mengurangi tanggung jawab operasional unit ATS; unit ATS tetap bertanggung jawab penuh atas penyediaan layanan ATS di wilayahnya, sementara INMC menyediakan pengawasan situasional tingkat jaringan dan memfasilitasi CDM",
-      "INMC mengambil alih penerbitan ATC clearance lintas FIR sementara unit ATS hanya bertindak sebagai unit FIS",
-      "Unit ATS hanya bertanggung jawab pada ruang udara TMA, sedangkan ruang udara CTA di atas FL245 dikendalikan langsung oleh INMC"
-    ],
-    correctIndex: 1,
-    explanation: "Sec. 14.10.4 secara eksplisit menegaskan bahwa koordinasi INMC tidak mengalihkan atau mengurangi tanggung jawab operasional unit ATS; unit ATS tetap bertanggung jawab penuh atas layanan ATS di wilayah tanggung jawabnya."
-  },
-  {
-    id: "MATS-V5-012",
-    part: "Part 3",
-    volume: "Volume V",
-    section: "Section 14",
-    reference: "MATS Part 3, Vol. V, Sec. 14.6.2",
-    category: "Vol. V • Sec 14: Weather Deviation",
-    difficulty: "Hard",
-    question: "Ketika pesawat melakukan deviasi cuaca (weather deviation) di ruang udara oceanic/remote setelah tidak berhasil memperoleh clearance tepat waktu dari ATC dan deviasi melampaui 5 NM dari centerline rute, perubahan ketinggian standar (level change) yang harus dilakukan pilot ketika berbelok ke kanan adalah:",
-    options: [
-      "Descend 300 ft (untuk terbang ke arah East) atau Climb 300 ft (untuk terbang ke arah West)",
-      "Climb 300 ft (untuk arah East 000°–179°) atau Descend 300 ft (untuk arah West 180°–359°)",
-      "Climb 1.000 ft tanpa memperhatikan arah terbang",
-      "Descend 1.000 ft tanpa menyalakan lampu anti-collision"
-    ],
-    correctIndex: 0,
-    explanation: "Berdasarkan MATS Part 3 Vol. V Section 14.6.2 (Weather Deviation Contingency), jika deviasi > 5 NM tanpa clearance: arah East (000°–179°) melakukan Descend 300 ft, sedangkan arah West (180°–359°) melakukan Climb 300 ft (aturan 'East is Least, West is Best' untuk 300 ft offset)."
-  }
-];
-
-// ============================================================================
-// EXPANDED STRUCTURED DATABASE GENERATOR (500 ITEMS ACROSS VOL II - VOL V)
-// Combines all verified core items + structured operational parameter variants
+// VOLUME METADATA SPECIFICATIONS (MATS PART 3 VOL II - VOL V)
 // ============================================================================
 const VOLUME_SPECS = [
   {
-    volume: "Volume II",
-    shortLabel: "Vol. II",
-    title: "ATS General Provisions & Separation",
-    targetTotal: 150,
-    sections: ["Section 3", "Section 4"],
-    color: "sky",
-    templates: [
-      {
-        section: "Section 4",
-        reference: "MATS Part 3, Vol. II, Sec. 4.3.2",
-        category: "Vol. II • Sec 4: Vertical Separation",
-        difficulty: "Easy",
-        q: (n) => `[Skenario #${n}] Pada ruang udara non-RVSM di atas FL290 (misalnya FL430), berapa nilai Vertical Separation Minimum (VSM) standar yang berlaku antar penerbangan IFR?`,
-        options: ["Nominal 1.000 ft (300 m)", "Nominal 2.000 ft (600 m)", "Nominal 1.500 ft (450 m)", "Nominal 4.000 ft (1.200 m)"],
-        correctIndex: 1,
-        explanation: "Di atas FL290 pada ruang udara non-RVSM (atau di atas FL410), Vertical Separation Minimum (VSM) standar adalah nominal 600 m (2.000 ft) sesuai MATS Part 3 Vol. II Sec. 4.3.2."
-      },
-      {
-        section: "Section 3",
-        reference: "MATS Part 3, Vol. II, Sec. 3.4.2.2",
-        category: "Vol. II • Sec 3: Flight Plan Delay",
-        difficulty: "Medium",
-        q: (n) => `[Skenario #${n}] Untuk penerbangan tidak terkontrol (uncontrolled flight) yang telah mengajukan Flight Plan, keterlambatan EOBT melebihi batas berapa lama yang mewajibkan pengajuan amandemen atau FPL baru?`,
-        options: ["Lebih dari 15 menit", "Lebih dari 30 menit", "Lebih dari 1 jam", "Lebih dari 3 jam"],
-        correctIndex: 2,
-        explanation: "Sesuai MATS Part 3 Vol. II Sec. 3.4.2.2, batas keterlambatan EOBT untuk penerbangan tidak terkontrol adalah lebih dari 1 jam (sedangkan penerbangan terkontrol lebih dari 30 menit)."
-      },
-      {
-        section: "Section 4",
-        reference: "MATS Part 3, Vol. II, Sec. 4.4.2.4.1",
-        category: "Vol. II • Sec 4: Mach Number Technique",
-        difficulty: "Hard",
-        q: (n) => `[Skenario #${n}] Dua pesawat terbang pada rute yang sama dengan Mach Number Technique (MNT). Jika pesawat di depan mempertahankan kecepatan 0,04 Mach lebih cepat daripada pesawat di belakangnya, berapa separasi waktu longitudinal minimum yang diizinkan?`,
-        options: ["9 menit", "8 menit", "7 menit", "6 menit"],
-        correctIndex: 2,
-        explanation: "Berdasarkan tabel pengurangan separasi MNT pada MATS Part 3 Vol. II Sec. 4.4.2.4.1, selisih 0,04 Mach menurunkan separasi longitudinal minimum menjadi 7 menit (dari dasar 10 menit)."
-      }
-    ]
+    volume: 'Volume II',
+    shortLabel: 'Vol. II',
+    title: 'ATS General Provisions & Separation',
+    sections: ['Sec. 3 General Provisions', 'Sec. 4 Separation Minima']
   },
   {
-    volume: "Volume III",
-    shortLabel: "Vol. III",
-    title: "Aerodrome Control Procedures",
-    targetTotal: 125,
-    sections: ["Section 5", "Section 6"],
-    color: "emerald",
-    templates: [
-      {
-        section: "Section 5",
-        reference: "MATS Part 3, Vol. III, Sec. 5.7.1.1",
-        category: "Vol. III • Sec 5: Wake Turbulence TWR",
-        difficulty: "Easy",
-        q: (n) => `[Skenario #${n}] Berapa separasi waktu Wake Turbulence non-radar minimum untuk pesawat MEDIUM (M) yang lepas landas dari threshold yang sama di belakang pesawat HEAVY (H)?`,
-        options: ["1 menit", "2 menit", "3 menit", "4 menit"],
-        correctIndex: 1,
-        explanation: "Sesuai MATS Part 3 Vol. III Sec. 5.7.1.1, separasi wake turbulence non-radar untuk pesawat MEDIUM di belakang HEAVY dari ujung runway yang sama adalah 2 menit."
-      },
-      {
-        section: "Section 6",
-        reference: "MATS Part 3, Vol. III, Sec. 6.2.6",
-        category: "Vol. III • Sec 6: Runway-in-Use",
-        difficulty: "Medium",
-        q: (n) => `[Skenario #${n}] Faktor noise abatement tidak boleh dijadikan alasan pemilihan runway-in-use apabila komponen crosswind (termasuk gust) pada runway tersebut melebihi batas maksimum sebesar:`,
-        options: ["5 kt", "10 kt", "15 kt", "25 kt"],
-        correctIndex: 2,
-        explanation: "Berdasarkan MATS Part 3 Vol. III Sec. 6.2.6, noise abatement tidak boleh digunakan jika komponen crosswind (termasuk gust) melebihi 28 km/h (15 kt) atau komponen tailwind melebihi 9 km/h (5 kt)."
-      },
-      {
-        section: "Section 6",
-        reference: "MATS Part 3, Vol. III, Sec. 6.11.7",
-        category: "Vol. III • Sec 6: RRSM Minima",
-        difficulty: "Hard",
-        q: (n) => `[Skenario #${n}] Dalam penerapan Reduced Runway Separation Minima (RRSM) pada siang hari dengan kondisi runway kering dan braking action baik, pesawat pendarat Category 1 diizinkan melintasi threshold di belakang pesawat Category 1 sebelumnya apabila pesawat pendahulu telah melewati titik minimal sejauh:`,
-        options: ["600 m dari threshold runway dan bergerak meninggalkan runway tanpa backtracking", "1.500 m dari threshold runway", "2.400 m dari threshold runway", "3.000 m dari threshold runway"],
-        correctIndex: 0,
-        explanation: "Sesuai MATS Part 3 Vol. III Sec. 6.11.7 a) 1), jarak minimum RRSM adalah 600 m dari threshold untuk pesawat Category 1 di belakang Category 1 atau Category 2."
-      }
-    ]
+    volume: 'Volume III',
+    shortLabel: 'Vol. III',
+    title: 'Aerodrome Control Procedures',
+    sections: ['Sec. 5 Vicinity of Aerodromes', 'Sec. 6 TWR Control Service']
   },
   {
-    volume: "Volume IV",
-    shortLabel: "Vol. IV",
-    title: "ATS Surveillance, FIS & Coordination",
-    targetTotal: 125,
-    sections: ["Section 7", "Section 8", "Section 9"],
-    color: "amber",
-    templates: [
-      {
-        section: "Section 7",
-        reference: "MATS Part 3, Vol. IV, Sec. 7.7.3.1",
-        category: "Vol. IV • Sec 7: Surveillance Wake Turbulence",
-        difficulty: "Easy",
-        q: (n) => `[Skenario #${n}] Berapa jarak Wake Turbulence Separation Minima berbasis sistem ATS surveillance untuk pesawat kategori HEAVY (H) yang terbang di belakang pesawat kategori HEAVY (H)?`,
-        options: ["3 NM (5,6 km)", "4 NM (7,4 km)", "5 NM (9,3 km)", "6 NM (11,1 km)"],
-        correctIndex: 1,
-        explanation: "Berdasarkan MATS Part 3 Vol. IV Sec. 7.7.3.1, jarak wake turbulence separation minima berbasis surveillance antara HEAVY di belakang HEAVY adalah 7,4 km (4 NM)."
-      },
-      {
-        section: "Section 8",
-        reference: "MATS Part 3, Vol. IV, Sec. 8.2.2.2 a)",
-        category: "Vol. IV • Sec 8: Alerting Phase INCERFA",
-        difficulty: "Medium",
-        q: (n) => `[Skenario #${n}] Berapa batas waktu keterlambatan komunikasi atau kedatangan pesawat setelah ETA terakhir yang memicu penetapan fase ketidakpastian (INCERFA) oleh unit ATS?`,
-        options: ["10 menit", "15 menit", "30 menit", "60 menit"],
-        correctIndex: 2,
-        explanation: "Sesuai MATS Part 3 Vol. IV Sec. 8.2.2.2 a), fase INCERFA ditetapkan apabila komunikasi tidak diterima dalam 30 menit atau pesawat gagal tiba dalam 30 menit setelah ETA terakhir."
-      },
-      {
-        section: "Section 7",
-        reference: "MATS Part 3, Vol. IV, Sec. 7.9.3.1",
-        category: "Vol. IV • Sec 7: Final Approach Vectoring",
-        difficulty: "Hard",
-        q: (n) => `[Skenario #${n}] Ketika memberikan vectoring untuk mencegat final approach track pada jarak yang relatif dekat dari final approach fix/point (close-in intercept), sudut pencegatan maksimum yang diizinkan adalah:`,
-        options: ["Tidak lebih dari 15 derajat", "Tidak lebih dari 30 derajat", "Tidak lebih dari 45 derajat", "Tidak lebih dari 60 derajat"],
-        correctIndex: 1,
-        explanation: "Sesuai MATS Part 3 Vol. IV Sec. 7.9.3.1, sudut intercept maksimum adalah 45°, namun tidak boleh lebih dari 30° apabila jarak pencegatan ke final approach fix/point relatif dekat."
-      }
-    ]
+    volume: 'Volume IV',
+    shortLabel: 'Vol. IV',
+    title: 'ATS Surveillance, FIS & Coordination',
+    sections: ['Sec. 7 ATS Surveillance', 'Sec. 8 FIS & Alerting', 'Sec. 9 Coordination']
   },
   {
-    volume: "Volume V",
-    shortLabel: "Vol. V",
-    title: "Communications & Contingency Procedures",
-    targetTotal: 100,
-    sections: ["Section 10", "Section 11", "Section 12", "Section 13", "Section 14", "Section 15"],
-    color: "violet",
-    templates: [
-      {
-        section: "Section 10",
-        reference: "MATS Part 3, Vol. V, Sec. 10.1.2",
-        category: "Vol. V • Sec 10: AFTN Priority",
-        difficulty: "Easy",
-        q: (n) => `[Skenario #${n}] Indikator prioritas jaringan AFTN manakah yang wajib digunakan untuk pesan kategori Distress (DETRESFA / MAYDAY)?`,
-        options: ["SS", "DD", "FF", "GG"],
-        correctIndex: 0,
-        explanation: "Sesuai MATS Part 3 Vol. V Sec. 10.1.2, Priority Indicator 'SS' digunakan khusus untuk pesan Distress (keadaan bahaya mendesak)."
-      },
-      {
-        section: "Section 14",
-        reference: "MATS Part 3, Vol. V, Sec. 14.3.3 b) 1)",
-        category: "Vol. V • Sec 14: RCF Procedural Airspace",
-        difficulty: "Medium",
-        q: (n) => `[Skenario #${n}] Apabila pesawat mengalami kegagalan komunikasi radio (RCF) dalam kondisi IMC di ruang udara yang menggunakan separasi prosedural (non-surveillance), berapa lama pesawat harus mempertahankan last assigned speed and level sebelum melanjutkan sesuai flight plan?`,
-        options: ["7 menit", "10 menit", "15 menit", "20 menit"],
-        correctIndex: 3,
-        explanation: "Sesuai MATS Part 3 Vol. V Sec. 14.3.3 b) 1), pada airspace dengan procedural separation, waktu mempertahankan last assigned speed and level adalah 20 menit (sedangkan pada surveillance airspace adalah 7 menit)."
-      },
-      {
-        section: "Section 14",
-        reference: "MATS Part 3, Vol. V, Sec. 14.9.3.2",
-        category: "Vol. V • Sec 14: TIBA Collision Avoidance",
-        difficulty: "Hard",
-        q: (n) => `[Skenario #${n}] Dalam prosedur TIBA pada ruang udara di bawah FL290 (atau di mana VSM adalah 1.000 ft), jika tindakan vertikal segera diperlukan untuk menghindari tabrakan yang mendesak, pesawat wajib segera melakukan:`,
-        options: ["Descend 150 m (500 ft), menyalakan seluruh lampu pesawat, dan melaporkan tindakan tersebut di frekuensi TIBA", "Climb 1.000 ft dan mematikan transponder", "Descend 2.000 ft tanpa komunikasi", "Berbelok ke kiri 90 derajat"],
-        correctIndex: 0,
-        explanation: "Berdasarkan MATS Part 3 Vol. V Sec. 14.9.3.2 a), tindakan vertikal segera dalam TIBA adalah descend 150 m (500 ft) [atau 300 m / 1.000 ft di atas FL290 dengan VSM 2.000 ft] serta menyalakan seluruh lampu pesawat."
-      }
-    ]
+    volume: 'Volume V',
+    shortLabel: 'Vol. V',
+    title: 'Communications & Contingency Procedures',
+    sections: ['Sec. 10 ATS Messages', 'Sec. 11 Phraseologies', 'Sec. 12-13 ADS-C/CPDLC', 'Sec. 14-15 Contingency/INMC']
   }
 ];
-
-// Build full 500-item structured database deterministically
-function buildFullQuestionBank() {
-  const fullBank = [...CORE_QUESTIONS];
-
-  VOLUME_SPECS.forEach((spec) => {
-    const existingForVol = fullBank.filter((q) => q.volume === spec.volume);
-    const needed = Math.max(0, spec.targetTotal - existingForVol.length);
-
-    for (let i = 0; i < needed; i++) {
-      const tpl = spec.templates[i % spec.templates.length];
-      const seqNum = existingForVol.length + i + 1;
-      const paddedId = String(seqNum).padStart(3, '0');
-      const volCode =
-        spec.volume === "Volume II"
-          ? "V2"
-          : spec.volume === "Volume III"
-          ? "V3"
-          : spec.volume === "Volume IV"
-          ? "V4"
-          : "V5";
-
-      fullBank.push({
-        id: `MATS-${volCode}-${paddedId}`,
-        part: "Part 3",
-        volume: spec.volume,
-        section: tpl.section,
-        reference: tpl.reference,
-        category: tpl.category,
-        difficulty: tpl.difficulty,
-        question: tpl.q(seqNum),
-        options: [...tpl.options],
-        correctIndex: tpl.correctIndex,
-        explanation: tpl.explanation
-      });
-    }
-  });
-
-  return fullBank;
-}
-
-const QUESTION_BANK = buildFullQuestionBank();
 
 const DIFFICULTY_LEVELS = [
-  { id: 'ALL', label: 'Semua Level' },
-  { id: 'Easy', label: 'Easy (Dasar)' },
-  { id: 'Medium', label: 'Medium (Prosedural)' },
-  { id: 'Hard', label: 'Hard (Skenario Kompleks)' }
+  { id: 'ALL', label: 'All Levels' },
+  { id: 'Easy', label: 'Easy (Foundational)' },
+  { id: 'Medium', label: 'Medium (Procedural)' },
+  { id: 'Hard', label: 'Hard (Operational Scenarios)' }
 ];
 
-const SESSION_SIZE_OPTIONS = [25, 50, 75, 100];
-const QUESTION_TIME_LIMIT = 15; // 15-second countdown per question
-const AUTO_ADVANCE_DELAY_MS = 650;
-const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const SESSION_SIZE_OPTIONS = [10, 20, 30, 50];
 
-// Fisher-Yates unbiased shuffle
-function shuffleArray(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+// ============================================================================
+// VERIFIED QUESTION BANK (100% UNIQUE, ICAO AVIATION ENGLISH)
+// ============================================================================
+const RAW_QUESTIONS = [
+  // -------------------- VOLUME II --------------------
+  {
+    id: 'MATS-V2-001',
+    volume: 'Volume II',
+    category: 'Sec. 3.1 Area Control Service',
+    reference: 'MATS Part 3 Vol. II, 3.1.1',
+    difficulty: 'Easy',
+    question: 'In accordance with MATS Part 3 Volume II Section 3.1.1, which AirNav Indonesia ATS units provide Area Control Service (ACC) and what are their designated vertical limits?',
+    options: [
+      { text: 'Jakarta ACC (FL 150–FL 600) and Surabaya ACC (FL 245–FL 600)', isCorrect: false },
+      { text: 'Jakarta ACC (FL 245–FL 600) and Ujung Pandang ACC (FL 245–FL 600)', isCorrect: true },
+      { text: 'Jakarta ACC (FL 245–FL 460), Medan ACC (FL 245–FL 600), and Ujung Pandang ACC (FL 245–FL 600)', isCorrect: false },
+      { text: 'JATSC ACC (FL 100–FL 600) and MATSC ACC (FL 100–FL 600)', isCorrect: false }
+    ],
+    explanation: 'Table 3.1.1 designates two Area Control Centres in Indonesia: Jakarta ACC (JATSC) and Ujung Pandang ACC (MATSC), each responsible for its respective CTA from FL 245 to FL 600.'
+  },
+  {
+    id: 'MATS-V2-002',
+    volume: 'Volume II',
+    category: 'Sec. 3.1 Approach Control Service',
+    reference: 'MATS Part 3 Vol. II, 3.1.2',
+    difficulty: 'Easy',
+    question: 'Which Approach Control (APP) unit is responsible for providing APP Surveillance service for Mozes Kilangin Airport (Timika) and Frans Kaisiepo Airport (Biak)?',
+    options: [
+      { text: 'Sultan Hasanuddin APP (MATSC)', isCorrect: false },
+      { text: 'Sentani APP', isCorrect: true },
+      { text: 'Pattimura APP (Ambon)', isCorrect: false },
+      { text: 'Sam Ratulangi APP (Manado)', isCorrect: false }
+    ],
+    explanation: 'Pursuant to Table 3.1.2 (Items 38–40), APP Surveillance service for Sorong, Timika, and Biak is provided by Sentani APP.'
+  },
+  {
+    id: 'MATS-V2-003',
+    volume: 'Volume II',
+    category: 'Sec. 3.3 Transfer of Control',
+    reference: 'MATS Part 3 Vol. II, 3.3.2.1.1',
+    difficulty: 'Medium',
+    question: 'Control of an arriving aircraft shall be transferred from the unit providing approach control service to the aerodrome control tower when the aircraft meets any of the following conditions, EXCEPT:',
+    options: [
+      { text: 'It is in the vicinity of the aerodrome and approach and landing will be completed in visual reference to the ground', isCorrect: false },
+      { text: 'It has reached uninterrupted visual meteorological conditions (VMC)', isCorrect: false },
+      { text: 'It is at a prescribed point or level as specified in Letters of Agreement (LoA) or unit SOP', isCorrect: false },
+      { text: 'It has just entered the outer lateral boundary of the TMA at FL 200 in instrument meteorological conditions (IMC)', isCorrect: true }
+    ],
+    explanation: 'Transfer of control from APP to TWR occurs when the arriving aircraft is in the vicinity of the aerodrome with visual reference/uninterrupted VMC, at a prescribed point or level per LoA/SOP, or has landed.'
+  },
+  {
+    id: 'MATS-V2-004',
+    volume: 'Volume II',
+    category: 'Sec. 3.4 Flight Plan Delay',
+    reference: 'MATS Part 3 Vol. II, 3.4.2.2',
+    difficulty: 'Medium',
+    question: 'In the event of a delay beyond the Estimated Off-Block Time (EOBT), the flight plan shall be amended or a new flight plan submitted if the delay exceeds:',
+    options: [
+      { text: '15 minutes for a controlled flight and 30 minutes for an uncontrolled flight', isCorrect: false },
+      { text: '30 minutes for a controlled flight and 1 hour for an uncontrolled flight', isCorrect: true },
+      { text: '45 minutes for a controlled flight and 90 minutes for an uncontrolled flight', isCorrect: false },
+      { text: '60 minutes for a controlled flight and 2 hours for an uncontrolled flight', isCorrect: false }
+    ],
+    explanation: 'In accordance with Flight Plan provisions (Sec. 3.4 / ICAO Doc 4444), a delay exceeding 30 minutes for a controlled flight or 1 hour for an uncontrolled flight requires flight plan modification or cancellation.'
+  },
+  {
+    id: 'MATS-V2-005',
+    volume: 'Volume II',
+    category: 'Sec. 3.6 Horizontal Speed Control',
+    reference: 'MATS Part 3 Vol. II, 3.6.3.3',
+    difficulty: 'Medium',
+    question: 'During initial descent from cruising level, what is the minimum indicated airspeed (IAS) that a controller may instruct a turbojet aircraft to maintain without prior flight crew agreement?',
+    options: [
+      { text: '210 kt IAS', isCorrect: false },
+      { text: '220 kt IAS', isCorrect: false },
+      { text: '250 kt IAS (460 km/h)', isCorrect: true },
+      { text: '280 kt IAS (520 km/h)', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.6.3.3 stipulates that controllers shall not issue speed reduction instructions to less than 460 km/h (250 kt) IAS during initial descent from cruising level for turbojet aircraft unless agreed to by the flight crew.'
+  },
+  {
+    id: 'MATS-V2-006',
+    volume: 'Volume II',
+    category: 'Sec. 3.6 Approach Speed Control',
+    reference: 'MATS Part 3 Vol. II, 3.6.3.5 & 3.6.3.7',
+    difficulty: 'Hard',
+    question: 'Below 4 550 m (FL 150), speed reductions for arriving turbojet aircraft shall not be less than what speed, and beyond what distance from the runway threshold on final approach shall speed control no longer be applied?',
+    options: [
+      { text: 'Not less than 220 kt IAS; not applied after passing 4 NM (7 km) from the threshold', isCorrect: true },
+      { text: 'Not less than 200 kt IAS; not applied after passing 3 NM (5 km) from the threshold', isCorrect: false },
+      { text: 'Not less than 210 kt IAS; not applied after passing 5 NM (9.3 km) from the threshold', isCorrect: false },
+      { text: 'Not less than 230 kt IAS; not applied after passing 2 NM (3.7 km) from the threshold', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.6.3.5 establishes a minimum of 410 km/h (220 kt) IAS below FL 150, while Sec. 3.6.3.7 prohibits applying speed control once an aircraft has passed 7 km (4 NM) from the threshold on final approach.'
+  },
+  {
+    id: 'MATS-V2-007',
+    volume: 'Volume II',
+    category: 'Sec. 3.9 Wake Turbulence',
+    reference: 'MATS Part 3 Vol. II, 3.9.1.1',
+    difficulty: 'Easy',
+    question: 'According to wake turbulence categorization based on Maximum Certificated Take-Off Mass (MCTOM), which mass range defines the MEDIUM (M) wake turbulence category?',
+    options: [
+      { text: '7 000 kg (15 500 lb) or less', isCorrect: false },
+      { text: 'More than 7 000 kg (15 500 lb) and less than 136 000 kg (300 000 lb)', isCorrect: true },
+      { text: 'More than 18 600 kg and less than 136 000 kg', isCorrect: false },
+      { text: '136 000 kg (300 000 lb) or more', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.9.1.1 c) defines MEDIUM (M) aircraft types as those having an MCTOM of less than 136 000 kg (300 000 lb) and more than 7 000 kg (15 500 lb).'
+  },
+  {
+    id: 'MATS-V2-008',
+    volume: 'Volume II',
+    category: 'Sec. 3.9 Wake Turbulence Call Sign',
+    reference: 'MATS Part 3 Vol. II, 3.9.2',
+    difficulty: 'Easy',
+    question: 'For which wake turbulence categories shall the word "SUPER" or "HEAVY" be included immediately after the aircraft call sign in the initial radiotelephony contact with ATS units?',
+    options: [
+      { text: 'SUPER category aircraft only', isCorrect: false },
+      { text: 'SUPER and HEAVY categories (equivalent to Wake Turbulence Groups A, B, and C)', isCorrect: true },
+      { text: 'SUPER, HEAVY, and UPPER MEDIUM categories', isCorrect: false },
+      { text: 'All wide-body aircraft exceeding 100 000 kg MCTOM', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.9.2 mandates including "super" or "heavy" immediately after the aircraft call sign upon initial radiotelephony contact for SUPER (Group A) and HEAVY (Groups B and C) aircraft.'
+  },
+  {
+    id: 'MATS-V2-009',
+    volume: 'Volume II',
+    category: 'Sec. 3.10 Altimeter Setting',
+    reference: 'MATS Part 3 Vol. II, 3.10.1.1',
+    difficulty: 'Medium',
+    question: 'While an aircraft is passing through the transition layer in the vicinity of an aerodrome or within a Terminal Control Area (TMA), how shall its vertical position be expressed?',
+    options: [
+      { text: 'Always in altitudes whether climbing or descending', isCorrect: false },
+      { text: 'Always in flight levels whether climbing or descending', isCorrect: false },
+      { text: 'In flight levels when climbing and in altitudes when descending', isCorrect: true },
+      { text: 'In altitudes when climbing and in flight levels when descending', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.10.1.1 prescribes that while aircraft are passing through the transition layer, vertical position shall be expressed in terms of flight levels when climbing and in terms of altitudes when descending.'
+  },
+  {
+    id: 'MATS-V2-010',
+    volume: 'Volume II',
+    category: 'Sec. 3.12 Routine & Special Air-Reports',
+    reference: 'MATS Part 3 Vol. II, 3.12.3',
+    difficulty: 'Medium',
+    question: 'Which meteorological phenomenon requires the flight crew to transmit a Special Air-Report (AIREP SPECIAL) as soon as practicable upon observation?',
+    options: [
+      { text: 'Light turbulence and isolated cumulus humilis clouds', isCorrect: false },
+      { text: 'Moderate or severe turbulence, severe icing, severe mountain wave, or volcanic ash cloud', isCorrect: true },
+      { text: 'Wind direction shift of less than 10 degrees at cruising level', isCorrect: false },
+      { text: 'Outside Air Temperature (OAT) 2°C warmer than ISA standard', isCorrect: false }
+    ],
+    explanation: 'Sec. 3.12.3 requires AIREP SPECIAL reports whenever moderate or severe turbulence, severe icing, severe mountain waves, thunderstorms with/without hail, wind shear, or volcanic ash clouds are encountered.'
+  },
+  {
+    id: 'MATS-V2-011',
+    volume: 'Volume II',
+    category: 'Sec. 4.3 Vertical Separation Minimum',
+    reference: 'MATS Part 3 Vol. II, 4.3.2',
+    difficulty: 'Easy',
+    question: 'Within designated Reduced Vertical Separation Minimum (RVSM) airspace, what is the standard Vertical Separation Minimum (VSM) applied below FL 410?',
+    options: [
+      { text: '150 m (500 ft)', isCorrect: false },
+      { text: '300 m (1 000 ft)', isCorrect: true },
+      { text: '600 m (2 000 ft)', isCorrect: false },
+      { text: '1 200 m (4 000 ft)', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.3.2 b) establishes a nominal VSM of 300 m (1 000 ft) below FL 410 within designated RVSM airspace subject to regional air navigation agreement, and 600 m (2 000 ft) at or above FL 410.'
+  },
+  {
+    id: 'MATS-V2-012',
+    volume: 'Volume II',
+    category: 'Sec. 4.4 Lateral Separation (VOR/NDB)',
+    reference: 'MATS Part 3 Vol. II, 4.4.1.2.1.1',
+    difficulty: 'Medium',
+    question: 'When applying lateral separation using the same ground-based navigation aid, what minimum track divergence and minimum distance from the facility are required for VOR and NDB respectively?',
+    options: [
+      { text: 'VOR: tracks diverge by at least 15° at a distance ≥ 15 NM (28 km); NDB: tracks diverge by at least 30° at a distance ≥ 15 NM (28 km)', isCorrect: true },
+      { text: 'VOR: tracks diverge by at least 10° at a distance ≥ 10 NM; NDB: tracks diverge by at least 15° at a distance ≥ 15 NM', isCorrect: false },
+      { text: 'VOR: tracks diverge by at least 30° at a distance ≥ 15 NM; NDB: tracks diverge by at least 45° at a distance ≥ 20 NM', isCorrect: false },
+      { text: 'Both VOR and NDB require a minimum track divergence of 15° at a distance ≥ 20 NM', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.4.1.2.1.1 specifies lateral separation by VOR when tracks diverge by at least 15° and at least one aircraft is 28 km (15 NM) or more from the facility; for NDB, tracks must diverge by at least 30° at 28 km (15 NM) or more.'
+  },
+  {
+    id: 'MATS-V2-013',
+    volume: 'Volume II',
+    category: 'Sec. 4.4 Longitudinal Separation (Time)',
+    reference: 'MATS Part 3 Vol. II, 4.4.2.2.1.1',
+    difficulty: 'Medium',
+    question: 'For aircraft maintaining the same level on the same track, what is the minimum time-based longitudinal separation when the preceding aircraft maintains a True Airspeed (TAS) of 40 kt (74 km/h) or more faster than the succeeding aircraft after reporting over the same significant point?',
+    options: [
+      { text: '10 minutes', isCorrect: false },
+      { text: '5 minutes', isCorrect: false },
+      { text: '3 minutes', isCorrect: true },
+      { text: '2 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.4.2.2.1.1 d) permits a 3-minute longitudinal separation minimum when the preceding aircraft maintains a TAS of 74 km/h (40 kt) or more faster than the succeeding aircraft (5 minutes applies if ≥ 20 kt faster).'
+  },
+  {
+    id: 'MATS-V2-014',
+    volume: 'Volume II',
+    category: 'Sec. 4.4 Longitudinal Separation (DME/GNSS)',
+    reference: 'MATS Part 3 Vol. II, 4.4.2.3.3.1',
+    difficulty: 'Medium',
+    question: 'What is the minimum distance-based longitudinal separation using DME and/or GNSS for aircraft at the same level on the same track when the preceding aircraft maintains a TAS of 20 kt (37 km/h) or more faster than the succeeding aircraft?',
+    options: [
+      { text: '9.3 km (5 NM)', isCorrect: false },
+      { text: '19 km (10 NM)', isCorrect: true },
+      { text: '37 km (20 NM)', isCorrect: false },
+      { text: '55.5 km (30 NM)', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.4.2.3.3.1 b) sets a 19 km (10 NM) minimum using simultaneous DME and/or GNSS readings when the preceding aircraft is at least 37 km/h (20 kt) faster; otherwise the standard minimum is 37 km (20 NM).'
+  },
+  {
+    id: 'MATS-V2-015',
+    volume: 'Volume II',
+    category: 'Sec. 4.4 Mach Number Technique',
+    reference: 'MATS Part 3 Vol. II, 4.4.2.4.3',
+    difficulty: 'Hard',
+    question: 'When applying time-based longitudinal separation with the Mach Number Technique (MNT) on the same track, if the preceding aircraft is flying Mach 0.03 faster than the succeeding aircraft, what minimum longitudinal separation is required at the entry point?',
+    options: [
+      { text: '10 minutes', isCorrect: false },
+      { text: '8 minutes', isCorrect: false },
+      { text: '7 minutes', isCorrect: true },
+      { text: '5 minutes', isCorrect: false }
+    ],
+    explanation: 'Under MNT reduction rules (Sec. 4.4.2.4), the base 10-minute minimum may be reduced by 1 minute for each Mach 0.01 speed advantage of the preceding aircraft: Mach 0.01 = 9 min, Mach 0.02 = 8 min, Mach 0.03 = 7 min.'
+  },
+  {
+    id: 'MATS-V2-016',
+    volume: 'Volume II',
+    category: 'Sec. 4.4 ADS-C Climb & Descend Procedure',
+    reference: 'MATS Part 3 Vol. II, 4.4.2.8.1',
+    difficulty: 'Hard',
+    question: 'When applying the ADS-C Climb and Descend Procedure (CDP) on the same track, what minimum longitudinal distance is required when the following aircraft is not more than 10 kt or Mach 0.02 faster than the preceding aircraft?',
+    options: [
+      { text: '15 NM (27.8 km) with a maximum altitude difference of 1 000 ft', isCorrect: false },
+      { text: '25 NM (46.3 km) with a maximum altitude difference of 2 000 ft and vertical separation re-established within 15 minutes', isCorrect: true },
+      { text: '30 NM (55.5 km) with a maximum altitude difference of 2 000 ft and vertical separation re-established within 10 minutes', isCorrect: false },
+      { text: '50 NM (93 km) with position accuracy of Figure of Merit 4 or higher', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.4.2.8.1 requires at least 46.3 km (25 NM) when the following aircraft is ≤ 10 kt or Mach 0.02 faster (or 15 NM if the preceding aircraft is same speed/faster), altitude difference ≤ 600 m (2 000 ft), FoM ≥ 6, and vertical separation re-established within 15 minutes.'
+  },
+  {
+    id: 'MATS-V2-017',
+    volume: 'Volume II',
+    category: 'Sec. 4.6 Separation Between Departing Aircraft',
+    reference: 'MATS Part 3 Vol. II, 4.6.1 & 4.6.2',
+    difficulty: 'Easy',
+    question: 'What is the minimum time separation required between two departing aircraft when their tracks will diverge by at least 45 degrees immediately after take-off?',
+    options: [
+      { text: '1 minute', isCorrect: true },
+      { text: '2 minutes', isCorrect: false },
+      { text: '3 minutes', isCorrect: false },
+      { text: '5 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.6.1 requires 1-minute separation between departing aircraft if tracks diverge by at least 45 degrees immediately after take-off (2 minutes applies on the same track if the preceding aircraft is ≥ 40 kt faster).'
+  },
+  {
+    id: 'MATS-V2-018',
+    volume: 'Volume II',
+    category: 'Sec. 4.7 Departing vs Arriving Aircraft',
+    reference: 'MATS Part 3 Vol. II, 4.7.1.3',
+    difficulty: 'Hard',
+    question: 'When an arriving aircraft is following an RNAV or RNP instrument flight procedure and a departing aircraft takes off on a path clear of the arrival protection area, how is the "arrival protection area" defined?',
+    options: [
+      { text: 'The shaded area extending from a line 30° from the IAF to a line 30° from the outermost edge of the approach procedure', isCorrect: false },
+      { text: 'The shaded area extending from a line 45° from an established compulsory reporting waypoint to a line 45° from the outermost edge of the remainder of the arrival/approach procedure', isCorrect: true },
+      { text: 'A 5 NM wide corridor on either side of the final approach track up to 15 NM from the threshold', isCorrect: false },
+      { text: 'A 60° sector behind the Final Approach Fix (FAF)', isCorrect: false }
+    ],
+    explanation: 'The Note to Sec. 4.7.1.3 defines the arrival protection area as the shaded area extending from a line 45 degrees from an established compulsory reporting waypoint to a line 45 degrees from the outermost edge of the remainder of the arrival and/or approach procedure.'
+  },
+  {
+    id: 'MATS-V2-019',
+    volume: 'Volume II',
+    category: 'Sec. 4.8 Time-Based Wake Turbulence',
+    reference: 'MATS Part 3 Vol. II, 4.8.3.3',
+    difficulty: 'Hard',
+    question: 'What minimum time-based wake turbulence separation shall be applied for a MEDIUM aircraft taking off from an intermediate part of the same runway behind a SUPER aircraft taking off from the full-length threshold?',
+    options: [
+      { text: '2 minutes', isCorrect: false },
+      { text: '3 minutes', isCorrect: false },
+      { text: '4 minutes', isCorrect: true },
+      { text: '5 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.8.3.3 b) requires a minimum separation of 4 minutes for a LIGHT or MEDIUM aircraft taking off from an intermediate part of the same runway (or parallel runway separated by < 760 m) behind a SUPER aircraft.'
+  },
+  {
+    id: 'MATS-V2-020',
+    volume: 'Volume II',
+    category: 'Sec. 4.9 Own Separation in VMC',
+    reference: 'MATS Part 3 Vol. II, 4.9.1',
+    difficulty: 'Medium',
+    question: 'A clearance for a controlled IFR flight to fly maintaining its own separation while in Visual Meteorological Conditions (VMC) may only be issued in which airspace classes and vertical limits?',
+    options: [
+      { text: 'Class A and B airspace at all flight levels', isCorrect: false },
+      { text: 'Class D and E airspace below 3 050 m (10 000 ft) during climb or descent upon pilot request', isCorrect: true },
+      { text: 'Within an Aerodrome Traffic Zone (ATZ) below 3 000 ft only', isCorrect: false },
+      { text: 'In all airspace classes whenever flight visibility exceeds 8 km', isCorrect: false }
+    ],
+    explanation: 'Sec. 4.9.1 restricts clearances to maintain own separation in VMC to controlled flights in Class D and E airspace below 3 050 m (10 000 ft) during climb or descent.'
+  },
+
+  // -------------------- VOLUME III --------------------
+  {
+    id: 'MATS-V3-001',
+    volume: 'Volume III',
+    category: 'Sec. 5.3 Standard Departure Clearances',
+    reference: 'MATS Part 3 Vol. III, 5.3.2.3',
+    difficulty: 'Easy',
+    question: 'Which mandatory items shall be contained in a standard clearance for a departing aircraft assigned a Standard Instrument Departure (SID)?',
+    options: [
+      { text: 'Aircraft identification, clearance limit, assigned SID designator, cleared level, allocated SSR code, and any other necessary instructions', isCorrect: true },
+      { text: 'Aircraft identification, runway-in-use, and surface wind direction only', isCorrect: false },
+      { text: 'Aircraft identification, aerodrome QFE, and estimated time of arrival (ETA)', isCorrect: false },
+      { text: 'STAR designator, approach transition, and ATIS broadcast code', isCorrect: false }
+    ],
+    explanation: 'Sec. 5.3.2.3 requires standard departure clearances to include: aircraft identification, clearance limit, SID designator, cleared level, allocated SSR code, and any other required instructions (such as next frequency).'
+  },
+  {
+    id: 'MATS-V3-002',
+    volume: 'Volume III',
+    category: 'Sec. 5.5 Expected Approach Time (EAT)',
+    reference: 'MATS Part 3 Vol. III, 5.5.4.1',
+    difficulty: 'Medium',
+    question: 'An Expected Approach Time (EAT) shall be determined and transmitted to an arriving aircraft as soon as practicable whenever it is anticipated that the aircraft will be delayed for:',
+    options: [
+      { text: '5 minutes or more', isCorrect: false },
+      { text: '10 minutes or more', isCorrect: true },
+      { text: '15 minutes or more', isCorrect: false },
+      { text: '20 minutes or more', isCorrect: false }
+    ],
+    explanation: 'Under Sec. 5.5.4, an EAT is determined and transmitted to an arriving aircraft whenever an approach delay of 10 minutes or more is anticipated (and revised if it changes by 5 minutes or more).'
+  },
+  {
+    id: 'MATS-V3-003',
+    volume: 'Volume III',
+    category: 'Sec. 5.5 Holding Priority',
+    reference: 'MATS Part 3 Vol. III, 5.5.5.7 & 5.5.5.8',
+    difficulty: 'Medium',
+    question: 'While the first aircraft to arrive over a holding fix is normally assigned the lowest level, what procedure is recommended for turbojet aircraft when extended holding is anticipated?',
+    options: [
+      { text: 'Keep turbojet aircraft at the lowest level below turboprop traffic to preserve sequence', isCorrect: false },
+      { text: 'Permit turbojet aircraft, when practicable, to hold at higher levels to conserve fuel while retaining their order in the approach sequence', isCorrect: true },
+      { text: 'Instruct turbojet aircraft to leave the holding fix and orbit 30 NM away from the aerodrome', isCorrect: false },
+      { text: 'Grant turbojet aircraft emergency landing priority ahead of medical flights', isCorrect: false }
+    ],
+    explanation: 'Sec. 5.5.5.8 recommends permitting turbojet aircraft, when practicable during extended holding, to hold at higher levels to conserve fuel while retaining their order in the approach sequence.'
+  },
+  {
+    id: 'MATS-V3-004',
+    volume: 'Volume III',
+    category: 'Sec. 5.7 Independent Parallel Departures',
+    reference: 'MATS Part 3 Vol. III, 5.7.2.2',
+    difficulty: 'Medium',
+    question: 'For independent parallel IFR departures using RNAV or RNP instrument departure procedures with runway centre lines spaced at least 760 m (2 500 ft) apart, what minimum nominal track divergence is permitted?',
+    options: [
+      { text: '10 degrees, provided the turn commences no more than 2.0 NM (3.7 km) from the departure end of the runway', isCorrect: true },
+      { text: '15 degrees, provided the turn commences no more than 3.0 NM from the departure end of the runway', isCorrect: false },
+      { text: '5 degrees immediately after passing 400 ft AGL', isCorrect: false },
+      { text: '10 degrees, provided the turn commences after passing 1 000 ft AGL', isCorrect: false }
+    ],
+    explanation: 'Sec. 5.7.2.2 b) 2) allows a 10-degree track divergence (reduced from 15 degrees) where both aircraft fly RNAV/RNP departures and the turn commences no more than 3.7 km (2.0 NM) from the departure end of the runway.'
+  },
+  {
+    id: 'MATS-V3-005',
+    volume: 'Volume III',
+    category: 'Sec. 5.7 Independent Parallel Approaches',
+    reference: 'MATS Part 3 Vol. III, 5.7.3.2.4',
+    difficulty: 'Hard',
+    question: 'When vectoring an aircraft to intercept the final approach course or track during independent parallel approaches, the final vector shall meet all of the following conditions, EXCEPT:',
+    options: [
+      { text: 'Enable the aircraft to intercept at an angle not greater than 30 degrees', isCorrect: false },
+      { text: 'Provide at least 1.0 NM (1.9 km) straight and level flight prior to final approach course intercept', isCorrect: false },
+      { text: 'Enable the aircraft to be established on the final approach course in level flight for at least 2.0 NM (3.7 km) prior to glide path intercept', isCorrect: false },
+      { text: 'Enable the aircraft to intercept at an angle up to 45 degrees with 1.5 NM level flight before glide path intercept', isCorrect: true }
+    ],
+    explanation: 'Sec. 5.7.3.2.4 mandates an intercept angle ≤ 30°, at least 1.9 km (1.0 NM) straight and level flight before localizer/track intercept, and at least 3.7 km (2.0 NM) level flight on the final approach course before glide path intercept.'
+  },
+  {
+    id: 'MATS-V3-006',
+    volume: 'Volume III',
+    category: 'Sec. 5.7 No-Transgression Zone (NTZ)',
+    reference: 'MATS Part 3 Vol. III, 5.7.3.1',
+    difficulty: 'Hard',
+    question: 'In simultaneous independent parallel approach operations, what is the minimum width of the No-Transgression Zone (NTZ) established between the two Normal Operating Zones (NOZs)?',
+    options: [
+      { text: '300 m (1 000 ft)', isCorrect: false },
+      { text: '610 m (2 000 ft)', isCorrect: true },
+      { text: '760 m (2 500 ft)', isCorrect: false },
+      { text: '915 m (3 000 ft)', isCorrect: false }
+    ],
+    explanation: 'For independent parallel approaches (Sec. 5.7.3), the No-Transgression Zone (NTZ) is a corridor of at least 610 m (2 000 ft) width monitored by dedicated controllers to prevent lateral penetration.'
+  },
+  {
+    id: 'MATS-V3-007',
+    volume: 'Volume III',
+    category: 'Sec. 6.1 Tower Alerting Service',
+    reference: 'MATS Part 3 Vol. III, 6.1.2.3',
+    difficulty: 'Easy',
+    question: 'An aircraft that fails to report after transfer to an aerodrome control tower, or ceases radio contact after reporting, and fails to land within how many minutes after the expected landing time shall be reported to APP, ACC, FIC, or RCC?',
+    options: [
+      { text: '3 minutes', isCorrect: false },
+      { text: '5 minutes', isCorrect: true },
+      { text: '10 minutes', isCorrect: false },
+      { text: '15 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.1.2.3 requires aerodrome control towers to report such aircraft to the approach control unit, ACC, FIC, or RCC/RSC if it fails to land within 5 minutes after the expected landing time.'
+  },
+  {
+    id: 'MATS-V3-008',
+    volume: 'Volume III',
+    category: 'Sec. 6.2 Noise Abatement Runway',
+    reference: 'MATS Part 3 Vol. III, 6.2.6',
+    difficulty: 'Medium',
+    question: 'Under which meteorological conditions shall noise abatement NOT be a determining factor in runway-in-use nomination for landing operations?',
+    options: [
+      { text: 'Ceiling lower than 1 000 ft or visibility less than 5 000 m', isCorrect: false },
+      { text: 'Ceiling lower than 500 ft (150 m) above aerodrome elevation or visibility less than 1 900 m', isCorrect: true },
+      { text: 'Tailwind component exceeding 3 kt on a dry runway', isCorrect: false },
+      { text: 'When only a VOR/DME non-precision approach is available with 3 000 m visibility', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.2.6 b) 1) prohibits using noise abatement as a determining factor for landing when the ceiling is lower than 150 m (500 ft) above aerodrome elevation or visibility is less than 1 900 m (or if the runway is contaminated).'
+  },
+  {
+    id: 'MATS-V3-009',
+    volume: 'Volume III',
+    category: 'Sec. 6.4 Aerodrome Information Order',
+    reference: 'MATS Part 3 Vol. III, 6.4.1.2.3',
+    difficulty: 'Easy',
+    question: 'Prior to entering the traffic circuit or commencing an approach to land, in what specific order shall the aerodrome controller provide essential landing information to the aircraft?',
+    options: [
+      { text: 'QNH altimeter setting, air temperature, then runway-in-use', isCorrect: false },
+      { text: 'Runway to be used, surface wind direction and speed (including significant variations), then QNH altimeter setting (and QFE if requested/applicable)', isCorrect: true },
+      { text: 'Landing Distance Available (LDA), aerodrome elevation, then approach lighting status', isCorrect: false },
+      { text: 'Parking stand assignment, ground control frequency, then apron surface conditions', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.4.1.2.3 mandates providing elements in the exact order: (a) runway to be used, (b) surface wind direction and speed, and (c) QNH altimeter setting (and QFE on a regular basis or if requested).'
+  },
+  {
+    id: 'MATS-V3-010',
+    volume: 'Volume III',
+    category: 'Sec. 6.6 Runway-Holding Position',
+    reference: 'MATS Part 3 Vol. III, 6.6.3.1.3.2',
+    difficulty: 'Medium',
+    question: 'When is a controller permitted to clear an aircraft to line up and hold on the approach end of a runway-in-use while another aircraft is effecting a landing on that same runway?',
+    options: [
+      { text: 'Immediately after the landing aircraft crosses the runway threshold', isCorrect: false },
+      { text: 'Not until the landing aircraft has passed the point of intended holding', isCorrect: true },
+      { text: 'Whenever the landing aircraft is still more than 1 NM from the runway threshold', isCorrect: false },
+      { text: 'During daylight hours whenever ground visibility exceeds 5 km', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.6.3.1.3.2 states that the controller shall not permit aircraft to line up and hold on the approach end of a runway-in-use whenever another aircraft is effecting a landing, until the landing aircraft has passed the point of intended holding.'
+  },
+  {
+    id: 'MATS-V3-011',
+    volume: 'Volume III',
+    category: 'Sec. 6.7 Traffic Circuit Positions',
+    reference: 'MATS Part 3 Vol. III, 6.7.2',
+    difficulty: 'Easy',
+    question: 'In a standard aerodrome traffic circuit, what is the name of the leg flown parallel to the runway-in-use in the direction opposite to landing?',
+    options: [
+      { text: 'Crosswind leg', isCorrect: false },
+      { text: 'Downwind leg', isCorrect: true },
+      { text: 'Base leg', isCorrect: false },
+      { text: 'Upwind leg', isCorrect: false }
+    ],
+    explanation: 'Standard aerodrome traffic circuit legs consist of: Upwind (take-off), Crosswind, Downwind (parallel to the runway opposite the landing direction), Base leg, and Final approach.'
+  },
+  {
+    id: 'MATS-V3-012',
+    volume: 'Volume III',
+    category: 'Sec. 6.7 Landing Priority Order',
+    reference: 'MATS Part 3 Vol. III, 6.7.3.3',
+    difficulty: 'Medium',
+    question: 'Which category of flight shall be afforded the highest landing priority by an aerodrome control tower?',
+    options: [
+      { text: 'Scheduled state/VVIP flights', isCorrect: false },
+      { text: 'An aircraft that anticipates being compelled to land because of factors affecting safe operation (e.g., engine failure, shortage of fuel)', isCorrect: true },
+      { text: 'Delayed wide-body commercial airliners (SUPER/HEAVY)', isCorrect: false },
+      { text: 'Training flights approaching the end of their scheduled slot', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.7.3.3 establishes landing priority order: (a) aircraft compelled to land due to safety factors (engine failure, fuel shortage), (b) hospital/medical flights, (c) search and rescue flights, and (d) other flights designated by the authority.'
+  },
+  {
+    id: 'MATS-V3-013',
+    volume: 'Volume III',
+    category: 'Sec. 6.9 Radiotelephony TAKE-OFF',
+    reference: 'MATS Part 3 Vol. III, 6.9.3.3',
+    difficulty: 'Easy',
+    question: 'Under what specific circumstances shall the expression "TAKE-OFF" be used in radiotelephony communications?',
+    options: [
+      { text: 'When instructing an aircraft to line up and wait on the runway', isCorrect: false },
+      { text: 'Only when an aircraft is cleared for take-off or when cancelling a take-off clearance', isCorrect: true },
+      { text: 'When querying departure readiness at the runway-holding position', isCorrect: false },
+      { text: 'Whenever referencing runway departure procedures or surface wind checks', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.9.3.3 mandates that the expression TAKE-OFF shall only be used in radiotelephony when an aircraft is cleared for take-off or when cancelling a take-off clearance (the word "departure" is used in other contexts).'
+  },
+  {
+    id: 'MATS-V3-014',
+    volume: 'Volume III',
+    category: 'Sec. 6.10 Landing Roll-Out Restriction',
+    reference: 'MATS Part 3 Vol. III, 6.10.3.2',
+    difficulty: 'Medium',
+    question: 'Which landing or roll-out manoeuvre shall NOT be requested by an aerodrome controller for a SUPER or HEAVY wake turbulence category aircraft?',
+    options: [
+      { text: 'Vacating the runway at a specified exit taxiway', isCorrect: false },
+      { text: 'Landing beyond the touchdown zone of the runway', isCorrect: true },
+      { text: 'Reporting when the entire aircraft is beyond the runway-holding position', isCorrect: false },
+      { text: 'Expediting vacating the runway after landing roll-out', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.10.3.2 explicitly prohibits requesting a SUPER or HEAVY aircraft to land beyond the touchdown zone of a runway.'
+  },
+  {
+    id: 'MATS-V3-015',
+    volume: 'Volume III',
+    category: 'Sec. 6.11 Reduced Runway Separation Minima',
+    reference: 'MATS Part 3 Vol. III, 6.11.3 & 6.11.6',
+    difficulty: 'Hard',
+    question: 'Reduced Runway Separation Minima (RRSM) between aircraft using the same runway may only be applied when all of the following conditions are met, EXCEPT:',
+    options: [
+      { text: 'Applied during daylight hours from 30 minutes after local sunrise to 30 minutes before local sunset', isCorrect: false },
+      { text: 'Visibility is at least 5 km, ceiling is not lower than 300 m (1 000 ft), and tailwind component does not exceed 5 kt', isCorrect: false },
+      { text: 'Applied between a departing aircraft and a preceding landing aircraft', isCorrect: true },
+      { text: 'Wake turbulence separation minima are applied and braking action is not adversely affected by contaminants', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.11.5 explicitly states that Reduced Runway Separation Minima shall NOT apply between a departing aircraft and a preceding landing aircraft.'
+  },
+  {
+    id: 'MATS-V3-016',
+    volume: 'Volume III',
+    category: 'Sec. 6.11 RRSM Category Distances',
+    reference: 'MATS Part 3 Vol. III, 6.11.7 a) 2)',
+    difficulty: 'Hard',
+    question: 'Under Reduced Runway Separation Minima (RRSM), a succeeding landing Category 2 aircraft may cross the runway threshold when a preceding landing Category 1 aircraft has passed a point at least how far from the runway threshold?',
+    options: [
+      { text: '600 m from the threshold, in motion and vacating without backtracking', isCorrect: false },
+      { text: '1 500 m from the threshold, in motion and vacating without backtracking', isCorrect: true },
+      { text: '2 400 m from the threshold and beyond the runway-holding position', isCorrect: false },
+      { text: '1 000 m from the threshold with a tailwind component not exceeding 10 kt', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.11.7 a) 2) specifies a minimum distance of 1 500 m from the runway threshold for a succeeding landing Category 2 aircraft behind a Category 1 or 2 aircraft (600 m applies for Cat 1 behind Cat 1/2, and 2 400 m behind Cat 3).'
+  },
+  {
+    id: 'MATS-V3-017',
+    volume: 'Volume III',
+    category: 'Sec. 6.14 Suspension of VFR Operations',
+    reference: 'MATS Part 3 Vol. III, 6.14.1',
+    difficulty: 'Medium',
+    question: 'Which ATS units are authorized to suspend any or all Visual Flight Rules (VFR) operations on or in the vicinity of an aerodrome when required by safety considerations?',
+    options: [
+      { text: 'Only the Airport Authority upon written approval from the DGCA', isCorrect: false },
+      { text: 'The approach control unit serving the aerodrome or the aerodrome control tower concerned', isCorrect: true },
+      { text: 'Only the pilot-in-command of the first aircraft reporting adverse weather', isCorrect: false },
+      { text: 'The aerodrome meteorological office independently without ATS coordination', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.14.1 empowers either the approach control unit serving the aerodrome or the aerodrome control tower concerned to suspend VFR operations on or in the vicinity of the aerodrome.'
+  },
+  {
+    id: 'MATS-V3-018',
+    volume: 'Volume III',
+    category: 'Sec. 6.15 Special VFR Authorization',
+    reference: 'MATS Part 3 Vol. III, 6.15.2',
+    difficulty: 'Hard',
+    question: 'When authorizing a Special VFR flight within a Control Zone (CTR), what is the minimum reported ground visibility required?',
+    options: [
+      { text: 'Not less than 800 m', isCorrect: false },
+      { text: 'Not less than 1 500 m', isCorrect: true },
+      { text: 'Not less than 3 000 m', isCorrect: false },
+      { text: 'Not less than 5 000 m', isCorrect: false }
+    ],
+    explanation: 'Sec. 6.15.2 stipulates that a Special VFR flight shall not be authorized when the ground visibility is less than 1 500 m (except for helicopters under specific national provisions).'
+  },
+
+  // -------------------- VOLUME IV --------------------
+  {
+    id: 'MATS-V4-001',
+    volume: 'Volume IV',
+    category: 'Sec. 7.1 ATS Surveillance Systems',
+    reference: 'MATS Part 3 Vol. IV, 7.1.11',
+    difficulty: 'Medium',
+    question: 'ADS-B may be used alone, including in the provision of separation between aircraft, provided all of the following requirements are met, EXCEPT:',
+    options: [
+      { text: 'Identification of ADS-B-equipped aircraft is established and maintained', isCorrect: false },
+      { text: 'The data integrity measure in the ADS-B message is adequate to support the separation minimum', isCorrect: false },
+      { text: 'There is no requirement for detection of aircraft not transmitting ADS-B', isCorrect: false },
+      { text: 'The aircraft is operating outside two-way VHF radiocommunication coverage', isCorrect: true }
+    ],
+    explanation: 'Sec. 7.1.11 sets four conditions for standalone ADS-B separation: maintained identification, adequate data integrity measure, no requirement to detect non-ADS-B aircraft, and no requirement for independent position determination.'
+  },
+  {
+    id: 'MATS-V4-002',
+    volume: 'Volume IV',
+    category: 'Sec. 7.5 Pressure-Altitude Verification',
+    reference: 'MATS Part 3 Vol. IV, 7.5.5.1.1',
+    difficulty: 'Easy',
+    question: 'What is the tolerance value used to determine that pressure-altitude-derived level information (Mode C / Mode S / ADS-B) displayed to the controller is accurate within RVSM airspace?',
+    options: [
+      { text: '±30 m (±100 ft)', isCorrect: false },
+      { text: '±60 m (±200 ft)', isCorrect: true },
+      { text: '±90 m (±300 ft)', isCorrect: false },
+      { text: '±150 m (±500 ft)', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.5.5.1.1 specifies a tolerance value of ±60 m (±200 ft) in RVSM airspace (and ±90 m / ±300 ft in non-RVSM airspace).'
+  },
+  {
+    id: 'MATS-V4-003',
+    volume: 'Volume IV',
+    category: 'Sec. 7.5 Level Vacated Determination',
+    reference: 'MATS Part 3 Vol. IV, 7.5.5.2.3',
+    difficulty: 'Medium',
+    question: 'Based on verified pressure-altitude-derived level information on a situation display, a climbing or descending aircraft is considered to have vacated a level once the displayed level indicates a change of more than how many feet in the anticipated direction?',
+    options: [
+      { text: 'More than 100 ft (30 m)', isCorrect: false },
+      { text: 'More than 200 ft (60 m)', isCorrect: false },
+      { text: 'More than 300 ft (90 m)', isCorrect: true },
+      { text: 'More than 500 ft (150 m)', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.5.5.2.3 specifies that an aircraft is considered to have vacated a level when verified pressure-altitude information indicates a change of more than 90 m (300 ft) in the anticipated direction.'
+  },
+  {
+    id: 'MATS-V4-004',
+    volume: 'Volume IV',
+    category: 'Sec. 7.6 PSR Identification Method',
+    reference: 'MATS Part 3 Vol. IV, 7.6.2.4.1',
+    difficulty: 'Medium',
+    question: 'When identifying an aircraft using Primary Surveillance Radar (PSR) by instructing a heading change, what minimum turn angle shall be prescribed to correlate the radar position indication?',
+    options: [
+      { text: '15 degrees or more', isCorrect: false },
+      { text: '20 degrees or more', isCorrect: false },
+      { text: '30 degrees or more', isCorrect: true },
+      { text: '45 degrees or more', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.6.2.4.1 d) requires instructing the pilot to execute one or more heading changes of 30 degrees or more (and direction-finding bearings shall not be used as the sole means of identification).'
+  },
+  {
+    id: 'MATS-V4-005',
+    volume: 'Volume IV',
+    category: 'Sec. 7.6 Vectoring & Minimum Vectoring Altitude',
+    reference: 'MATS Part 3 Vol. IV, 7.6.5.2 & 7.6.8.2',
+    difficulty: 'Medium',
+    question: 'When vectoring an IFR flight or assigning a direct routing that takes the aircraft off an ATS route, what is the controller’s responsibility regarding terrain and obstacle clearance?',
+    options: [
+      { text: 'Obstacle clearance remains solely the pilot’s responsibility at all times', isCorrect: false },
+      { text: 'The controller shall issue clearances such that the prescribed obstacle clearance (Minimum Vectoring Altitude / SMAC) exists at all times until the aircraft resumes own navigation', isCorrect: true },
+      { text: 'Vectoring off ATS routes is permitted only during daylight VMC', isCorrect: false },
+      { text: 'The controller may descend the aircraft to 500 ft AGL for visual terrain reference', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.6.5.2 and 7.6.8.2 mandate that controllers maintain prescribed minimum altitudes (Surveillance Minimum Altitude Chart / SMAC) at all times during tactical vectoring until the aircraft resumes own navigation on a published route/procedure.'
+  },
+  {
+    id: 'MATS-V4-006',
+    volume: 'Volume IV',
+    category: 'Sec. 7.7 Surveillance Separation Minimum',
+    reference: 'MATS Part 3 Vol. IV, 7.7.3.1',
+    difficulty: 'Easy',
+    question: 'Unless otherwise prescribed based on specific sensor capabilities or parallel approach procedures, what is the standard horizontal separation minimum based on radar, ADS-B, and/or MLAT systems?',
+    options: [
+      { text: '5.6 km (3.0 NM)', isCorrect: false },
+      { text: '9.3 km (5.0 NM)', isCorrect: true },
+      { text: '18.5 km (10.0 NM)', isCorrect: false },
+      { text: '4.6 km (2.5 NM)', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.7.3.1 establishes a standard horizontal separation minimum of 9.3 km (5.0 NM) based on radar, ADS-B, and/or MLAT systems.'
+  },
+  {
+    id: 'MATS-V4-007',
+    volume: 'Volume IV',
+    category: 'Sec. 7.7 Reduced Final Approach Separation (2.5 NM)',
+    reference: 'MATS Part 3 Vol. IV, 7.7.3.2 b)',
+    difficulty: 'Hard',
+    question: 'A reduced surveillance separation minimum of 4.6 km (2.5 NM) between succeeding aircraft on the same final approach track within 10 NM of the runway threshold requires that the average Runway Occupancy Time (ROT) does not exceed:',
+    options: [
+      { text: '40 seconds with an update rate of 4 seconds or less', isCorrect: false },
+      { text: '50 seconds with an update rate of 5 seconds or less', isCorrect: true },
+      { text: '60 seconds with an update rate of 5 seconds or less', isCorrect: false },
+      { text: '45 seconds with an update rate of 3 seconds or less', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.7.3.2 b) i) & iii) require proven average ROT not exceeding 50 seconds, a surveillance update rate of 5 seconds or less, good braking action, and no distance-based wake turbulence separation applicability.'
+  },
+  {
+    id: 'MATS-V4-008',
+    volume: 'Volume IV',
+    category: 'Sec. 7.7 Measurement on Situation Display',
+    reference: 'MATS Part 3 Vol. IV, 7.7.2.4 & 7.7.2.6',
+    difficulty: 'Hard',
+    question: 'How shall separation distance be measured on a situation display when separating an aircraft represented by a PSR blip from another aircraft represented by an SSR response?',
+    options: [
+      { text: 'From the centre of the PSR blip to the centre of the SSR response', isCorrect: false },
+      { text: 'From the nearest edge of the PSR blip to the nearest edge of the SSR response', isCorrect: false },
+      { text: 'From the centre of the PSR blip to the nearest edge of the SSR response', isCorrect: true },
+      { text: 'From the furthest edge of the PSR blip to the centre of the SSR response', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.7.2.4 prescribes measuring from the centre of the PSR blip to the nearest edge of the SSR response (whereas separation between two SSR responses is measured between their closest edges per Sec. 7.7.2.6).'
+  },
+  {
+    id: 'MATS-V4-009',
+    volume: 'Volume IV',
+    category: 'Sec. 7.7 Distance-Based Wake Turbulence',
+    reference: 'MATS Part 3 Vol. IV, 7.7.3.4',
+    difficulty: 'Hard',
+    question: 'In ATS surveillance service during the approach and departure phases, what is the minimum distance-based wake turbulence separation for a LIGHT aircraft operating directly behind a HEAVY aircraft at the same altitude or less than 1 000 ft below?',
+    options: [
+      { text: '7.4 km (4 NM)', isCorrect: false },
+      { text: '9.3 km (5 NM)', isCorrect: false },
+      { text: '11.1 km (6 NM)', isCorrect: true },
+      { text: '14.8 km (8 NM)', isCorrect: false }
+    ],
+    explanation: 'Under distance-based wake turbulence separation minima (Sec. 7.7.3.4): LIGHT behind SUPER = 8 NM; LIGHT behind HEAVY = 6 NM; MEDIUM behind HEAVY = 5 NM; LIGHT behind MEDIUM = 5 NM.'
+  },
+  {
+    id: 'MATS-V4-010',
+    volume: 'Volume IV',
+    category: 'Sec. 7.8 General ADS-B Emergency Alert',
+    reference: 'MATS Part 3 Vol. IV, 7.8.1.3',
+    difficulty: 'Medium',
+    question: 'Whenever a general ADS-B emergency alert is observed on the situation display with no indication of the specific nature of the emergency and no radio response is received, what action shall the controller take?',
+    options: [
+      { text: 'Suppress the alert label immediately assuming an avionics malfunction', isCorrect: false },
+      { text: 'Attempt to ascertain if the aircraft can receive ATC transmissions by requesting it to execute a specified manoeuvre observable on the situation display', isCorrect: true },
+      { text: 'Wait 30 minutes before notifying adjacent sectors or rescue units', isCorrect: false },
+      { text: 'Suspend surveillance separation for all other traffic within the sector', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.8.1.3 b) directs the controller to ascertain whether the aircraft can receive ATC transmissions by requesting it to execute a specified manoeuvre observable on the situation display.'
+  },
+  {
+    id: 'MATS-V4-011',
+    volume: 'Volume IV',
+    category: 'Sec. 7.9 Final Approach Vector Intercept Angle',
+    reference: 'MATS Part 3 Vol. IV, 7.9.3.6',
+    difficulty: 'Easy',
+    question: 'When vectoring an aircraft for a standard single-runway instrument approach, the final vector shall provide an intercept angle with the final approach track of:',
+    options: [
+      { text: '30 degrees or less', isCorrect: false },
+      { text: '45 degrees or less', isCorrect: true },
+      { text: '60 degrees or less', isCorrect: false },
+      { text: '90 degrees or less', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.9.3.6 states that the final vector for a standard instrument approach shall enable the aircraft to be established on the final approach track prior to glide path intercept with an intercept angle of 45 degrees or less (30° applies to independent parallel approaches).'
+  },
+  {
+    id: 'MATS-V4-012',
+    volume: 'Volume IV',
+    category: 'Sec. 7.11 Special VFR Vectoring Prohibition',
+    reference: 'MATS Part 3 Vol. IV, 7.11.1.2',
+    difficulty: 'Medium',
+    question: 'What is the operational rule regarding the vectoring of Special VFR flights using ATS surveillance systems?',
+    options: [
+      { text: 'Special VFR flights may be vectored routinely to expedite aerodrome traffic flow', isCorrect: false },
+      { text: 'Special VFR flights shall not be vectored unless special circumstances, such as emergencies, dictate otherwise', isCorrect: true },
+      { text: 'Special VFR flights shall always be vectored during night operations', isCorrect: false },
+      { text: 'Special VFR flights may only be vectored by an ACC above FL 100', isCorrect: false }
+    ],
+    explanation: 'Sec. 7.11.1.2 states unequivocally: "Special VFR flights shall not be vectored unless special circumstances, such as emergencies, dictate otherwise."'
+  },
+  {
+    id: 'MATS-V4-013',
+    volume: 'Volume IV',
+    category: 'Sec. 8.1 Air Traffic Advisory Service',
+    reference: 'MATS Part 3 Vol. IV, 8.1.4.1.3',
+    difficulty: 'Medium',
+    question: 'When providing Air Traffic Advisory Service in Class F advisory airspace or on advisory routes, how shall a proposed course of action be phrased to an aircraft?',
+    options: [
+      { text: 'By issuing a mandatory ATC clearance to prevent collisions', isCorrect: false },
+      { text: 'By delivering advisory information only, using the words "advise" or "suggest" rather than issuing clearances', isCorrect: true },
+      { text: 'By issuing compulsory radar vectors to separate IFR and VFR traffic', isCorrect: false },
+      { text: 'By transmitting meteorological warnings without any traffic avoidance advice', isCorrect: false }
+    ],
+    explanation: 'Sec. 8.1.4.1.3 clarifies that Air Traffic Advisory Service does not deliver "clearances" but only "advisory information" and uses the words "advise" or "suggest" when proposing a course of action.'
+  },
+  {
+    id: 'MATS-V4-014',
+    volume: 'Volume IV',
+    category: 'Sec. 8.1 SIGMET Transmission Period',
+    reference: 'MATS Part 3 Vol. IV, 8.1.3.2',
+    difficulty: 'Hard',
+    question: 'SIGMET and AIRMET information transmitted by an ATS unit to aircraft in flight shall cover a portion of the route up to how many hours’ flying time ahead of the aircraft?',
+    options: [
+      { text: '1 hour’s flying time ahead (60 minutes)', isCorrect: false },
+      { text: '2 hours’ flying time ahead', isCorrect: true },
+      { text: '4 hours’ flying time ahead', isCorrect: false },
+      { text: 'The entire remaining route to the destination aerodrome', isCorrect: false }
+    ],
+    explanation: 'Pursuant to Flight Information Service rules (Sec. 8.1.3 / ICAO Doc 4444), transmitted SIGMET/AIRMET information shall cover a portion of the route up to 2 hours’ flying time ahead of the aircraft.'
+  },
+  {
+    id: 'MATS-V4-015',
+    volume: 'Volume IV',
+    category: 'Sec. 8.2 Alerting Service Phases',
+    reference: 'MATS Part 3 Vol. IV, 8.2.2.1',
+    difficulty: 'Easy',
+    question: 'When no report from an aircraft has been received within a reasonable period after a scheduled or expected reporting time, within what stipulated period shall the ATS unit endeavour to obtain such report before declaring the "Uncertainty Phase" (INCERFA)?',
+    options: [
+      { text: '10 minutes', isCorrect: false },
+      { text: '15 minutes', isCorrect: false },
+      { text: '30 minutes', isCorrect: true },
+      { text: '60 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 8.2.2.1 stipulates a period of 30 minutes following a scheduled or expected reporting time within which the ATS unit shall endeavour to obtain a report in order to apply Uncertainty Phase (INCERFA) provisions.'
+  },
+  {
+    id: 'MATS-V4-016',
+    volume: 'Volume IV',
+    category: 'Sec. 9.1 Transfer of Communication Timing',
+    reference: 'MATS Part 3 Vol. IV, 9.1.2.4',
+    difficulty: 'Medium',
+    question: 'Unless otherwise agreed between two adjacent ACCs, how many minutes prior to the estimated time over the common FIR/CTA boundary shall transfer of radiocommunications be effected?',
+    options: [
+      { text: '2 minutes prior', isCorrect: false },
+      { text: '5 minutes prior', isCorrect: true },
+      { text: '10 minutes prior', isCorrect: false },
+      { text: '15 minutes prior', isCorrect: false }
+    ],
+    explanation: 'Under ATS coordination procedures (Sec. 9.1), transfer of communications between adjacent ACCs is normally effected 5 minutes before the aircraft is estimated to cross the common control area boundary.'
+  },
+  {
+    id: 'MATS-V4-017',
+    volume: 'Volume IV',
+    category: 'Sec. 9.1 Coordination Estimate Revision',
+    reference: 'MATS Part 3 Vol. IV, 9.1.2.2',
+    difficulty: 'Hard',
+    question: 'When a previously coordinated boundary estimate changes significantly, what minimum time variation requires the transferring ATS unit to immediately notify the accepting ATS unit of the revised estimate?',
+    options: [
+      { text: '1 minute or more', isCorrect: false },
+      { text: '3 minutes or more', isCorrect: true },
+      { text: '5 minutes or more', isCorrect: false },
+      { text: '10 minutes or more', isCorrect: false }
+    ],
+    explanation: 'In accordance with ATS coordination requirements (Sec. 9.1), any revision to a previously coordinated boundary estimate of 3 minutes or more shall be notified immediately to the accepting unit.'
+  },
+
+  // -------------------- VOLUME V --------------------
+  {
+    id: 'MATS-V5-001',
+    volume: 'Volume V',
+    category: 'Sec. 10.1 AFTN Message Priorities',
+    reference: 'MATS Part 3 Vol. V, 10.1.2',
+    difficulty: 'Easy',
+    question: 'When transmitted via the Aeronautical Fixed Telecommunication Network (AFTN), which Priority Indicator is assigned to urgency messages, including messages relating to an alert phase or uncertainty phase?',
+    options: [
+      { text: 'SS', isCorrect: false },
+      { text: 'DD', isCorrect: true },
+      { text: 'FF', isCorrect: false },
+      { text: 'GG', isCorrect: false }
+    ],
+    explanation: 'Sec. 10.1.2 assigns Priority Indicator SS to distress messages, DD to urgency messages (including alert and uncertainty phases), and FF (or higher) to radiocommunication failure/other emergency messages.'
+  },
+  {
+    id: 'MATS-V5-002',
+    volume: 'Volume V',
+    category: 'Sec. 10.4 Radiocommunication Failure (RCF) Message',
+    reference: 'MATS Part 3 Vol. V, 10.4.1.3.2',
+    difficulty: 'Hard',
+    question: 'When an ATS unit is aware that an aircraft is experiencing radiocommunication failure, and the next ATS unit has not yet received basic flight plan data because it uses Current Flight Plan (CPL) coordination, which messages shall be transmitted to that next ATS unit?',
+    options: [
+      { text: 'An Alerting (ALR) message only', isCorrect: false },
+      { text: 'Both a Radiocommunication Failure (RCF) message and a Current Flight Plan (CPL) message', isCorrect: true },
+      { text: 'A Cancellation (CNL) message followed by a Departure (DEP) message', isCorrect: false },
+      { text: 'An Estimate (EST) message with Priority Indicator GG only', isCorrect: false }
+    ],
+    explanation: 'Sec. 10.4.1.3.2 mandates that if the next ATS unit has not received basic flight plan data because it receives a CPL in the coordination procedure, both an RCF message and a CPL message shall be transmitted to it.'
+  },
+  {
+    id: 'MATS-V5-003',
+    volume: 'Volume V',
+    category: 'Sec. 10.4 Coordinate Initial (AIDC)',
+    reference: 'MATS Part 3 Vol. V, 10.4.2.5.4.2',
+    difficulty: 'Medium',
+    question: 'In ATS Interfacility Data Communications (AIDC), what is the operational purpose of a "Coordinate Initial" message?',
+    options: [
+      { text: 'An advisory notification that requires no operational response from the receiving unit', isCorrect: false },
+      { text: 'A proposal for coordination of a flight that must include boundary estimate data and route information from prior to entry to the destination aerodrome', isCorrect: true },
+      { text: 'Automatic cancellation of a flight plan if departure does not occur within 60 minutes', isCorrect: false },
+      { text: 'Confirmation of aircraft arrival after landing at the destination aerodrome', isCorrect: false }
+    ],
+    explanation: 'Sec. 10.4.2.5.4.2 defines the Coordinate Initial message as a proposal for coordination of a flight, requiring the inclusion of boundary estimate data and relevant route data.'
+  },
+  {
+    id: 'MATS-V5-004',
+    volume: 'Volume V',
+    category: 'Sec. 11.3 STAR Descent Phraseologies',
+    reference: 'MATS Part 3 Vol. V, 11.3.1.2 ff) & kk)',
+    difficulty: 'Medium',
+    question: 'Which standard phraseology shall a controller use to clear an aircraft to descend to a specified level while cancelling both the published level and speed restrictions of a STAR?',
+    options: [
+      { text: 'DESCEND VIA STAR TO (level)', isCorrect: false },
+      { text: 'DESCEND VIA STAR TO (level), CANCEL SPEED RESTRICTIONS', isCorrect: false },
+      { text: 'DESCEND UNRESTRICTED TO (level) or DESCEND (level), CANCEL LEVEL AND SPEED RESTRICTIONS', isCorrect: true },
+      { text: 'EXPEDITE DESCENT TO (level), DISREGARD STAR', isCorrect: false }
+    ],
+    explanation: 'Sec. 11.3.1.2 kk) prescribes "DESCEND UNRESTRICTED TO (level)" or "DESCEND (level), CANCEL LEVEL AND SPEED RESTRICTIONS" to cancel both level and speed restrictions on a STAR.'
+  },
+  {
+    id: 'MATS-V5-005',
+    volume: 'Volume V',
+    category: 'Sec. 11.3 Stand By vs Monitor',
+    reference: 'MATS Part 3 Vol. V, 11.3.1.4 Note',
+    difficulty: 'Easy',
+    question: 'What is the operational distinction between instructing an aircraft to "STAND BY" on a frequency versus instructing it to "MONITOR" a frequency?',
+    options: [
+      { text: '"STAND BY" is used when the ATS unit intends to initiate communications soon, whereas "MONITOR" is used when the pilot is simply required to listen out on the frequency', isCorrect: true },
+      { text: '"STAND BY" instructs the pilot to switch off the VHF transmitter for 5 minutes, whereas "MONITOR" activates the SSR transponder', isCorrect: false },
+      { text: 'Both terms carry identical operational meaning and are freely interchangeable', isCorrect: false },
+      { text: '"MONITOR" is restricted exclusively to guard frequency 121.5 MHz during emergencies', isCorrect: false }
+    ],
+    explanation: 'The Note to Sec. 11.3.1.4 specifies that an aircraft is requested to "STAND BY" on a frequency when the ATS unit intends to initiate communications soon, and to "MONITOR" when listening out on a frequency.'
+  },
+  {
+    id: 'MATS-V5-006',
+    volume: 'Volume V',
+    category: 'Sec. 11.4 Surveillance Transponder Phraseologies',
+    reference: 'MATS Part 3 Vol. V, 11.4.3.8',
+    difficulty: 'Easy',
+    question: 'Which standard radiotelephony phraseology shall be used by a controller to request the temporary suspension of transponder operation?',
+    options: [
+      { text: 'STOP SQUAWK', isCorrect: false },
+      { text: 'SQUAWK STANDBY', isCorrect: true },
+      { text: 'SQUAWK LOW', isCorrect: false },
+      { text: 'RESET SQUAWK', isCorrect: false }
+    ],
+    explanation: 'Sec. 11.4.3.8 designates the phraseology "SQUAWK STANDBY" to request temporary suspension of transponder operation.'
+  },
+  {
+    id: 'MATS-V5-007',
+    volume: 'Volume V',
+    category: 'Sec. 12.4 ADS-C Ground System Shutdown',
+    reference: 'MATS Part 3 Vol. V, 12.4.3.4.6.2.2',
+    difficulty: 'Medium',
+    question: 'In the event of an unplanned ADS-C ground system shutdown, the relevant ATS provider shall execute all of the following actions, EXCEPT:',
+    options: [
+      { text: 'Inform all affected aircraft and advise them of the requirement for position reports via voice or CPDLC', isCorrect: false },
+      { text: 'Take necessary action to establish alternative separation, if required', isCorrect: false },
+      { text: 'Inform adjacent ATS unit(s) by direct coordination and promulgate a NOTAM if appropriate', isCorrect: false },
+      { text: 'Direct all en-route aircraft within the FIR to divert and land at the nearest aerodrome within 15 minutes', isCorrect: true }
+    ],
+    explanation: 'Sec. 12.4.3.4.6.2.2 requires informing affected aircraft to provide voice/CPDLC position reports, establishing alternative separation, directly coordinating with adjacent ATS units, and issuing a NOTAM if appropriate.'
+  },
+  {
+    id: 'MATS-V5-008',
+    volume: 'Volume V',
+    category: 'Sec. 13.2 CPDLC Establishment & Rejection',
+    reference: 'MATS Part 3 Vol. V, 13.2.3.2',
+    difficulty: 'Hard',
+    question: 'When an ATC unit-initiated request for CPDLC establishment is rejected by an airborne system, which CPDLC downlink message elements are permitted as the reason for rejection?',
+    options: [
+      { text: 'UNABLE DUE TO TRAFFIC or STANDBY', isCorrect: false },
+      { text: 'NOT CURRENT DATA AUTHORITY or NOT AUTHORIZED NEXT DATA AUTHORITY', isCorrect: true },
+      { text: 'MESSAGE NOT SUPPORTED BY THIS AIRCRAFT', isCorrect: false },
+      { text: 'INVALID FLIGHT PLAN IDENTIFICATION', isCorrect: false }
+    ],
+    explanation: 'Sec. 13.2.3.2 specifies that only the downlink message elements NOT CURRENT DATA AUTHORITY or NOT AUTHORIZED NEXT DATA AUTHORITY shall be permitted as reasons for airborne rejection of ATC unit-initiated CPDLC.'
+  },
+  {
+    id: 'MATS-V5-009',
+    volume: 'Volume V',
+    category: 'Sec. 13.3 CPDLC Unsupported Message',
+    reference: 'MATS Part 3 Vol. V, 13.3.2.2.9',
+    difficulty: 'Medium',
+    question: 'Should an ATS unit select a subset of CPDLC message elements for its airspace and receive a downlink message that does not belong to that subset, how shall the ATC unit respond?',
+    options: [
+      { text: 'Uplink the message element MESSAGE NOT SUPPORTED BY THIS ATC UNIT', isCorrect: true },
+      { text: 'Ignore the downlink message without sending any automated or manual reply', isCorrect: false },
+      { text: 'Automatically terminate the CPDLC connection (LOGOFF)', isCorrect: false },
+      { text: 'Uplink ROGER followed by a FREE TEXT clarification request', isCorrect: false }
+    ],
+    explanation: 'Sec. 13.3.2.2.9 requires the ATC unit to respond by uplinking the message element MESSAGE NOT SUPPORTED BY THIS ATC UNIT; further processing of the received message is not required.'
+  },
+  {
+    id: 'MATS-V5-010',
+    volume: 'Volume V',
+    category: 'Sec. 14.2 Oceanic In-Flight Contingency',
+    reference: 'MATS Part 3 Vol. V, 14.2.3.2 & 14.2.3.3',
+    difficulty: 'Hard',
+    question: 'Under special procedures for in-flight contingencies in oceanic airspace where an aircraft must deviate without prior ATC clearance, what lateral offset shall be established before executing a vertical level offset?',
+    options: [
+      { text: 'Offset 2.0 NM (3.7 km) to the right, then descend 1 000 ft', isCorrect: false },
+      { text: 'Establish a 5.0 NM (9.3 km) parallel, same-direction track offset, then establish a 500 ft vertical offset (or 1 000 ft if above FL 410)', isCorrect: true },
+      { text: 'Offset 10.0 NM (18.5 km) to the left while maintaining the assigned flight level', isCorrect: false },
+      { text: 'Offset 15.0 NM (27.8 km) to the right without any vertical offset', isCorrect: false }
+    ],
+    explanation: 'Sec. 14.2.3.2 and 14.2.3.3 require maintaining the assigned flight level until established on a 9.3 km (5.0 NM) parallel, same-direction track offset, then establishing a 150 m (500 ft) vertical offset (or 300 m / 1 000 ft if above FL 410).'
+  },
+  {
+    id: 'MATS-V5-011',
+    volume: 'Volume V',
+    category: 'Sec. 14.3 Air-Ground Communications Failure',
+    reference: 'MATS Part 3 Vol. V, 14.3.3 b) 2)',
+    difficulty: 'Medium',
+    question: 'If an aircraft experiences air-ground communications failure in IMC within airspace where an ATS surveillance system is used, for how long shall the aircraft maintain its last assigned speed and level (or MFA if higher) before adjusting to the filed flight plan?',
+    options: [
+      { text: '5 minutes', isCorrect: false },
+      { text: '7 minutes', isCorrect: true },
+      { text: '15 minutes', isCorrect: false },
+      { text: '20 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 14.3.3 b) 2) specifies a period of 7 minutes in airspace where an ATS surveillance system is used (whereas 20 minutes applies in airspace where procedural separation is applied per Sec. 14.3.3 b) 1)).'
+  },
+  {
+    id: 'MATS-V5-012',
+    volume: 'Volume V',
+    category: 'Sec. 14.7 Similar Call Sign Mitigation',
+    reference: 'MATS Part 3 Vol. V, 14.7.6.5',
+    difficulty: 'Easy',
+    question: 'When two aircraft with similar numeric call sign sequences operate simultaneously on the same frequency (e.g., GIA534 and GIA234), which mitigation measure is recommended by MATS Vol. V?',
+    options: [
+      { text: 'Omit the telephony designator and address aircraft by flight digits only', isCorrect: false },
+      { text: 'Use emphasis for clarity on numbers, full call sign repetition (I SAY AGAIN), call sign suffix addition, or temporary call sign change', isCorrect: true },
+      { text: 'Instruct one aircraft to switch off its VHF receiver until clear of the sector', isCorrect: false },
+      { text: 'Use the 4-digit SSR squawk code in lieu of the aircraft call sign', isCorrect: false }
+    ],
+    explanation: 'Sec. 14.7.6.5 recommends emphasis on numbers, full call sign repetition ("I SAY AGAIN"), call sign suffix addition (Departure/Arrival/Location), or temporary call sign modification.'
+  },
+  {
+    id: 'MATS-V5-013',
+    volume: 'Volume V',
+    category: 'Sec. 14.9 TIBA Collision Avoidance',
+    reference: 'MATS Part 3 Vol. V, 14.9.3.2',
+    difficulty: 'Hard',
+    question: 'Under Traffic Information Broadcast by Aircraft (TIBA) procedures, if a pilot decides that immediate action is required to avoid an imminent collision risk above FL 290 where a 2 000 ft VSM is applied, what immediate vertical manoeuvre shall be executed?',
+    options: [
+      { text: 'Immediately climb 500 ft and switch on all exterior lights', isCorrect: false },
+      { text: 'Immediately descend 150 m (500 ft)', isCorrect: false },
+      { text: 'Immediately descend 300 m (1 000 ft), display all available aircraft lighting, and reply to the broadcast as soon as possible', isCorrect: true },
+      { text: 'Execute a 5 NM lateral offset to the left of the centre line', isCorrect: false }
+    ],
+    explanation: 'Sec. 14.9.3.2 a) specifies an immediate descent of 150 m (500 ft), or 300 m (1 000 ft) if above FL 290 in an area where a 600 m (2 000 ft) VSM is applied, displaying all available aircraft lighting and reporting the action.'
+  },
+  {
+    id: 'MATS-V5-014',
+    volume: 'Volume V',
+    category: 'Sec. 14.10 Indonesia Network Management Centre (INMC)',
+    reference: 'MATS Part 3 Vol. V, 14.10.4',
+    difficulty: 'Hard',
+    question: 'During large-scale operational disruptions or prolonged CNSD facility failures involving Indonesia Network Management Centre (INMC) coordination, how is operational responsibility divided between INMC and ATS units (such as JATSC/MATSC)?',
+    options: [
+      { text: 'Separation control responsibility is temporarily transferred to INMC until normal operations resume', isCorrect: false },
+      { text: 'INMC coordination does not transfer or diminish the operational responsibility of ATS units; ATS units remain fully responsible for ATS within their areas while INMC provides network oversight and facilitates CDM', isCorrect: true },
+      { text: 'INMC assumes issuance of inter-FIR ATC clearances while ATS units act solely as Flight Information Centres', isCorrect: false },
+      { text: 'ATS units retain responsibility only inside TMAs while INMC directly controls upper CTA airspace above FL 245', isCorrect: false }
+    ],
+    explanation: 'Sec. 14.10.4 explicitly states that INMC coordination does not transfer or diminish the operational responsibility of ATS units, which remain fully responsible for providing ATS within their respective areas of responsibility.'
+  },
+  {
+    id: 'MATS-V5-015',
+    volume: 'Volume V',
+    category: 'Sec. 15.5 Strategic Lateral Offset Procedures (SLOP)',
+    reference: 'MATS Part 3 Vol. V, 15.5.4 & 15.5.6',
+    difficulty: 'Medium',
+    question: 'Where Strategic Lateral Offset Procedures (SLOP) are authorized in en-route airspace with route centre line spacing of 15 NM (28 km) or more, in which direction and up to what maximum distance may flight crews apply an offset?',
+    options: [
+      { text: 'To the left or right of the centre line up to a maximum of 2 NM', isCorrect: false },
+      { text: 'To the right of the centre line relative to the direction of flight in tenths of a nautical mile up to a maximum of 2 NM (3.7 km)', isCorrect: true },
+      { text: 'To the right of the centre line up to a maximum of 0.5 NM (0.9 km)', isCorrect: false },
+      { text: 'To the right of the centre line up to a maximum of 5 NM after obtaining prior ATC clearance', isCorrect: false }
+    ],
+    explanation: 'Sec. 15.5.4 a) permits offsets to the right of the centre line relative to the direction of flight in tenths of a nautical mile up to 3.7 km (2 NM) where route spacing is 28 km (15 NM) or more; pilots are not required to notify ATC.'
+  },
+  {
+    id: 'MATS-V5-016',
+    volume: 'Volume V',
+    category: 'Sec. 15.6 Communicable Diseases Notification',
+    reference: 'MATS Part 3 Vol. V, 15.6.1 & 15.6.2',
+    difficulty: 'Easy',
+    question: 'Upon receiving notification from an en-route flight crew of a suspected case of communicable disease or public health risk on board, to whom shall the ATS unit forward the message as soon as possible?',
+    options: [
+      { text: 'Local military and law enforcement units only', isCorrect: false },
+      { text: 'The ATS unit serving the destination/departure aerodrome and the aircraft operator or its designated representative', isCorrect: true },
+      { text: 'The destination aerodrome meteorological office only', isCorrect: false },
+      { text: 'Broadcast openly on emergency frequency 121.5 MHz every 5 minutes', isCorrect: false }
+    ],
+    explanation: 'Sec. 15.6.2 requires the ATS unit receiving such notification to forward a message as soon as possible to the ATS unit serving the destination/departure and the aircraft operator or its designated representative.'
   }
-  return arr;
+];
+
+// Deduplication Safeguard: Guarantees zero duplicate IDs or identical normalized question text
+function buildUniqueQuestionBank(items) {
+  const seenIds = new Set();
+  const seenTexts = new Set();
+  const unique = [];
+
+  for (const item of items) {
+    const normText = item.question.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!seenIds.has(item.id) && !seenTexts.has(normText)) {
+      seenIds.add(item.id);
+      seenTexts.add(normText);
+      unique.push(item);
+    }
+  }
+  return unique;
 }
 
-// Format seconds to mm:ss
-function formatDuration(totalSeconds) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+const QUESTION_BANK = buildUniqueQuestionBank(RAW_QUESTIONS);
+
+// Fisher-Yates shuffle helper
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(true);
-  const [screen, setScreen] = useState('welcome'); // 'welcome' | 'quiz' | 'results'
+  // Theme state (default to soft light mode; dark mode uses soft low-glare charcoal)
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Volume Selection & Percentage Allocation State
+  // PWA Install & Offline Readiness States
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [isOfflineReady, setIsOfflineReady] = useState(false);
+
+  // Navigation screen: 'welcome' | 'quiz' | 'results'
+  const [screen, setScreen] = useState('welcome');
+
+  // Volume selection & percentage weights
   const [enabledVolumes, setEnabledVolumes] = useState({
     'Volume II': true,
     'Volume III': true,
@@ -1189,509 +1200,485 @@ export default function App() {
     'Volume V': 20
   });
 
-  // Difficulty & Session Question Count State
   const [selectedDifficulty, setSelectedDifficulty] = useState('ALL');
-  const [targetSessionSize, setTargetSessionSize] = useState(50);
+  const [sessionSize, setSessionSize] = useState(20);
+  const [configError, setConfigError] = useState('');
 
-  // Quiz Session States
-  const [quizQuestions, setQuizQuestions] = useState([]);
+  // Active Quiz states
+  const [activeQuestions, setActiveQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
-  const [totalElapsedSeconds, setTotalElapsedSeconds] = useState(0);
-  const [userAnswers, setUserAnswers] = useState([]);
-
-  // Review Filter States
-  const [reviewFilter, setReviewFilter] = useState('all');
-  const [expandedItems, setExpandedItems] = useState({});
+  const [answerHistory, setAnswerHistory] = useState([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const advanceTimeoutRef = useRef(null);
-  const processedIndexRef = useRef(-1);
 
-  // Toggle Volume inclusion & auto-rebalance percentages cleanly
-  const toggleVolume = (volName) => {
-    setEnabledVolumes((prev) => {
-      const next = { ...prev, [volName]: !prev[volName] };
-      const activeKeys = Object.keys(next).filter((k) => next[k]);
+  // Dynamic PWA Manifest, Apple Touch Icon, and Service Worker Registration
+  useEffect(() => {
+    // 1. Detect if already running in standalone installed mode
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    if (standalone) setIsInstalled(true);
 
-      // Prevent deselecting all volumes
-      if (activeKeys.length === 0) return prev;
-
-      // Redistribute 100% evenly among newly active volumes
-      const evenShare = Math.floor(100 / activeKeys.length);
-      const remainder = 100 - evenShare * activeKeys.length;
-      const updatedWeights = {
-        'Volume II': 0,
-        'Volume III': 0,
-        'Volume IV': 0,
-        'Volume V': 0
-      };
-      activeKeys.forEach((k, idx) => {
-        updatedWeights[k] = evenShare + (idx === 0 ? remainder : 0);
-      });
-      setVolumeWeights(updatedWeights);
-      return next;
-    });
-  };
-
-  // Update percentage slider for a specific volume
-  const handleWeightChange = (volName, rawVal) => {
-    const val = Math.max(0, Math.min(100, Number(rawVal) || 0));
-    setVolumeWeights((prev) => ({
-      ...prev,
-      [volName]: val
-    }));
-  };
-
-  // Normalize weights to 100% automatically
-  const normalizeWeightsTo100 = () => {
-    const activeKeys = Object.keys(enabledVolumes).filter((k) => enabledVolumes[k]);
-    if (activeKeys.length === 0) return;
-
-    const currentSum = activeKeys.reduce((acc, k) => acc + (volumeWeights[k] || 0), 0);
-    if (currentSum === 0) {
-      const even = Math.floor(100 / activeKeys.length);
-      const rem = 100 - even * activeKeys.length;
-      const next = { 'Volume II': 0, 'Volume III': 0, 'Volume IV': 0, 'Volume V': 0 };
-      activeKeys.forEach((k, idx) => {
-        next[k] = even + (idx === 0 ? rem : 0);
-      });
-      setVolumeWeights(next);
-      return;
-    }
-
-    const next = { 'Volume II': 0, 'Volume III': 0, 'Volume IV': 0, 'Volume V': 0 };
-    let allocated = 0;
-    activeKeys.forEach((k, idx) => {
-      if (idx === activeKeys.length - 1) {
-        next[k] = Math.max(0, 100 - allocated);
-      } else {
-        const scaled = Math.round(((volumeWeights[k] || 0) / currentSum) * 100);
-        next[k] = scaled;
-        allocated += scaled;
-      }
-    });
-    setVolumeWeights(next);
-  };
-
-  // Total configured percentage across enabled volumes
-  const totalConfiguredPercentage = useMemo(() => {
-    return Object.keys(enabledVolumes)
-      .filter((k) => enabledVolumes[k])
-      .reduce((sum, k) => sum + (volumeWeights[k] || 0), 0);
-  }, [enabledVolumes, volumeWeights]);
-
-  // Compute exact question quota breakdown per Volume
-  const allocationPreview = useMemo(() => {
-    const activeKeys = Object.keys(enabledVolumes).filter((k) => enabledVolumes[k]);
-    const effectiveTotalPct =
-      totalConfiguredPercentage > 0 ? totalConfiguredPercentage : activeKeys.length * 25;
-
-    let remainingQuestions = targetSessionSize;
-    const breakdown = {};
-
-    VOLUME_SPECS.forEach((spec) => {
-      const vol = spec.volume;
-      if (!enabledVolumes[vol]) {
-        breakdown[vol] = {
-          enabled: false,
-          rawPct: 0,
-          normalizedPct: 0,
-          plannedCount: 0,
-          availablePool: 0
-        };
-        return;
-      }
-
-      const pool = QUESTION_BANK.filter(
-        (q) =>
-          q.volume === vol &&
-          (selectedDifficulty === 'ALL' || q.difficulty === selectedDifficulty)
-      );
-
-      const rawPct = volumeWeights[vol] || 0;
-      const normalizedPct =
-        totalConfiguredPercentage > 0
-          ? (rawPct / effectiveTotalPct) * 100
-          : 100 / activeKeys.length;
-
-      breakdown[vol] = {
-        enabled: true,
-        rawPct,
-        normalizedPct: Math.round(normalizedPct),
-        plannedCount: 0,
-        availablePool: pool.length
-      };
-    });
-
-    // Allocate counts proportionally
-    let allocatedSum = 0;
-    activeKeys.forEach((vol, idx) => {
-      const item = breakdown[vol];
-      if (idx === activeKeys.length - 1) {
-        item.plannedCount = Math.min(
-          item.availablePool,
-          Math.max(0, targetSessionSize - allocatedSum)
-        );
-      } else {
-        const count = Math.min(
-          item.availablePool,
-          Math.round((item.normalizedPct / 100) * targetSessionSize)
-        );
-        item.plannedCount = count;
-        allocatedSum += count;
-      }
-    });
-
-    // Top-up if rounding left spare slots and pools still have capacity
-    let currentSum = activeKeys.reduce((s, k) => s + breakdown[k].plannedCount, 0);
-    while (currentSum < targetSessionSize) {
-      let added = false;
-      for (const vol of activeKeys) {
-        if (
-          currentSum < targetSessionSize &&
-          breakdown[vol].plannedCount < breakdown[vol].availablePool
-        ) {
-          breakdown[vol].plannedCount += 1;
-          currentSum += 1;
-          added = true;
-        }
-      }
-      if (!added) break;
-    }
-
-    return {
-      breakdown,
-      actualTotalQuestions: currentSum
+    // 2. Listen for Android / Desktop Chrome / Edge install prompt
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
     };
-  }, [enabledVolumes, volumeWeights, totalConfiguredPercentage, selectedDifficulty, targetSessionSize]);
-
-  // Export complete 500-item JSON database
-  const handleExportDatabase = () => {
-    const payload = {
-      metadata: {
-        title: "Manual of Air Traffic Services (MATS) Part 3 Question Bank",
-        volumes_covered: ["Volume II", "Volume III", "Volume IV", "Volume V"],
-        total_questions: QUESTION_BANK.length,
-        difficulty_distribution: {
-          Easy: QUESTION_BANK.filter((q) => q.difficulty === "Easy").length,
-          Medium: QUESTION_BANK.filter((q) => q.difficulty === "Medium").length,
-          Hard: QUESTION_BANK.filter((q) => q.difficulty === "Hard").length
-        },
-        exported_at: new Date().toISOString()
-      },
-      questions: QUESTION_BANK
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      setShowInstallModal(false);
     };
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: 'application/json'
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `MATS_Part3_Vol2-5_Database_${QUESTION_BANK.length}Soal.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // 3. Inject Apple iOS / iPadOS meta tags & SVG app icon dynamically
+    const svgIcon = encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <rect width="512" height="512" rx="112" fill="#0284c7"/>
+        <circle cx="256" cy="256" r="170" fill="none" stroke="#e0f2fe" stroke-width="18" opacity="0.45"/>
+        <circle cx="256" cy="256" r="105" fill="none" stroke="#e0f2fe" stroke-width="18" opacity="0.7"/>
+        <circle cx="256" cy="256" r="26" fill="#ffffff"/>
+        <line x1="256" y1="256" x2="385" y2="127" stroke="#34d399" stroke-width="22" stroke-linecap="round"/>
+      </svg>`
+    );
+    const iconDataUrl = `data:image/svg+xml,${svgIcon}`;
+
+    const setMetaTag = (name, content) => {
+      let tag = document.querySelector(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('name', name);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    setMetaTag('apple-mobile-web-app-capable', 'yes');
+    setMetaTag('apple-mobile-web-app-status-bar-style', 'default');
+    setMetaTag('apple-mobile-web-app-title', 'ATS SWORD Quiz');
+    setMetaTag('mobile-web-app-capable', 'yes');
+    setMetaTag('theme-color', '#0284c7');
+
+    let appleTouch = document.querySelector('link[rel="apple-touch-icon"]');
+    if (!appleTouch) {
+      appleTouch = document.createElement('link');
+      appleTouch.setAttribute('rel', 'apple-touch-icon');
+      document.head.appendChild(appleTouch);
+    }
+    appleTouch.setAttribute('href', iconDataUrl);
+
+    // 4. Inject Web App Manifest dynamically if not already linked
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const manifestObj = {
+        name: 'ATS SWORD — MATS Part 3 Interactive Quiz',
+        short_name: 'ATS SWORD',
+        description: 'ICAO-Aligned Question Bank & Assessment Simulator for Manual of ATS (Volume II – V) AirNav Indonesia',
+        start_url: window.location.pathname || '/',
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#f8fafc',
+        theme_color: '#0284c7',
+        icons: [
+          {
+            src: iconDataUrl,
+            sizes: '192x192 512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
+          }
+        ]
+      };
+      const manifestBlob = new Blob([JSON.stringify(manifestObj)], {
+        type: 'application/manifest+json'
+      });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      const manifestLink = document.createElement('link');
+      manifestLink.setAttribute('rel', 'manifest');
+      manifestLink.setAttribute('href', manifestUrl);
+      document.head.appendChild(manifestLink);
+    }
+
+    // 5. Register Service Worker for offline support if available on server
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(() => setIsOfflineReady(true))
+        .catch(() => {
+          // Safe fallback when running inside sandbox preview without /sw.js
+          setIsOfflineReady(false);
+        });
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  // Trigger native PWA install prompt or open cross-platform guide modal
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } else {
+      setShowInstallModal(true);
+    }
   };
 
+  // Timer effect during active quiz
+  useEffect(() => {
+    if (screen !== 'quiz') return;
+    const timer = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [screen]);
+
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
     };
   }, []);
 
-  // Build weighted random quiz session based on volume percentages & difficulty
-  const startQuiz = useCallback(() => {
-    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
-    processedIndexRef.current = -1;
+  // Format mm:ss
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
-    let assembled = [];
-    VOLUME_SPECS.forEach((spec) => {
-      const info = allocationPreview.breakdown[spec.volume];
-      if (!info || !info.enabled || info.plannedCount <= 0) return;
-
-      const pool = QUESTION_BANK.filter(
-        (q) =>
-          q.volume === spec.volume &&
-          (selectedDifficulty === 'ALL' || q.difficulty === selectedDifficulty)
-      );
-      const picked = shuffleArray(pool).slice(0, info.plannedCount);
-      assembled = assembled.concat(picked);
-    });
-
-    const finalSessionQuestions = shuffleArray(assembled);
-    if (finalSessionQuestions.length === 0) return;
-
-    setQuizQuestions(finalSessionQuestions);
-    setCurrentIndex(0);
-    setSelectedOption(null);
-    setIsLocked(false);
-    setScore(0);
-    setStreak(0);
-    setBestStreak(0);
-    setTimeLeft(QUESTION_TIME_LIMIT);
-    setTotalElapsedSeconds(0);
-    setUserAnswers([]);
-    setReviewFilter('all');
-    setExpandedItems({});
-    setScreen('quiz');
-  }, [allocationPreview, selectedDifficulty]);
-
-  const goToNextOrFinish = useCallback(
-    (updatedAnswers) => {
-      if (currentIndex + 1 < quizQuestions.length) {
-        setCurrentIndex((prev) => prev + 1);
-        setSelectedOption(null);
-        setIsLocked(false);
-        setTimeLeft(QUESTION_TIME_LIMIT);
-      } else {
-        const initialExpanded = {};
-        updatedAnswers.forEach((ans, idx) => {
-          if (!ans.isCorrect) initialExpanded[idx] = true;
-        });
-        setExpandedItems(initialExpanded);
-        setScreen('results');
-      }
-    },
-    [currentIndex, quizQuestions.length]
-  );
-
-  const handleSelectOption = useCallback(
-    (optionIndex) => {
-      if (isLocked || processedIndexRef.current === currentIndex) return;
-      processedIndexRef.current = currentIndex;
-
-      const currentQ = quizQuestions[currentIndex];
-      const isCorrect = optionIndex === currentQ.correctIndex;
-
-      setSelectedOption(optionIndex);
-      setIsLocked(true);
-
-      if (isCorrect) {
-        setScore((prev) => prev + 1);
-        setStreak((prev) => {
-          const nextStreak = prev + 1;
-          setBestStreak((b) => Math.max(b, nextStreak));
-          return nextStreak;
-        });
-      } else {
-        setStreak(0);
-      }
-
-      const answerRecord = {
-        questionId: currentQ.id,
-        part: currentQ.part,
-        volume: currentQ.volume,
-        section: currentQ.section,
-        reference: currentQ.reference,
-        category: currentQ.category,
-        difficulty: currentQ.difficulty,
-        question: currentQ.question,
-        options: currentQ.options,
-        selectedOption: optionIndex,
-        correctOption: currentQ.correctIndex,
-        isCorrect,
-        timedOut: false,
-        explanation: currentQ.explanation
-      };
-
-      const nextAnswers = [...userAnswers, answerRecord];
-      setUserAnswers(nextAnswers);
-
-      advanceTimeoutRef.current = setTimeout(() => {
-        goToNextOrFinish(nextAnswers);
-      }, AUTO_ADVANCE_DELAY_MS);
-    },
-    [isLocked, currentIndex, quizQuestions, userAnswers, goToNextOrFinish]
-  );
-
-  const handleTimeout = useCallback(() => {
-    if (isLocked || processedIndexRef.current === currentIndex) return;
-    processedIndexRef.current = currentIndex;
-
-    const currentQ = quizQuestions[currentIndex];
-    setSelectedOption(-1);
-    setIsLocked(true);
-    setStreak(0);
-
-    const answerRecord = {
-      questionId: currentQ.id,
-      part: currentQ.part,
-      volume: currentQ.volume,
-      section: currentQ.section,
-      reference: currentQ.reference,
-      category: currentQ.category,
-      difficulty: currentQ.difficulty,
-      question: currentQ.question,
-      options: currentQ.options,
-      selectedOption: -1,
-      correctOption: currentQ.correctIndex,
-      isCorrect: false,
-      timedOut: true,
-      explanation: currentQ.explanation
-    };
-
-    const nextAnswers = [...userAnswers, answerRecord];
-    setUserAnswers(nextAnswers);
-
-    advanceTimeoutRef.current = setTimeout(() => {
-      goToNextOrFinish(nextAnswers);
-    }, 350);
-  }, [isLocked, currentIndex, quizQuestions, userAnswers, goToNextOrFinish]);
-
-  useEffect(() => {
-    if (screen !== 'quiz') return;
-    const interval = setInterval(() => {
-      setTotalElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [screen]);
-
-  useEffect(() => {
-    if (screen !== 'quiz' || isLocked) return;
-
-    if (timeLeft <= 0) {
-      handleTimeout();
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [screen, isLocked, timeLeft, handleTimeout]);
-
-  useEffect(() => {
-    if (screen === 'quiz' && !isLocked && timeLeft === 0) {
-      handleTimeout();
-    }
-  }, [screen, isLocked, timeLeft, handleTimeout]);
-
-  useEffect(() => {
-    if (screen !== 'quiz' || isLocked) return;
-
-    const onKeyDown = (e) => {
-      const key = e.key.toUpperCase();
-      if (key === '1' || key === 'A') handleSelectOption(0);
-      else if (key === '2' || key === 'B') handleSelectOption(1);
-      else if (key === '3' || key === 'C') handleSelectOption(2);
-      else if (key === '4' || key === 'D') handleSelectOption(3);
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [screen, isLocked, handleSelectOption]);
-
-  const toggleExpandItem = (idx) => {
-    setExpandedItems((prev) => ({
+  // Toggle volume checkbox
+  const toggleVolume = (vol) => {
+    setConfigError('');
+    setEnabledVolumes((prev) => ({
       ...prev,
-      [idx]: !prev[idx]
+      [vol]: !prev[vol]
     }));
   };
 
-  const getDifficultyBadgeStyle = (diff) => {
-    if (diff === 'Easy') {
-      return darkMode
-        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    }
-    if (diff === 'Medium') {
-      return darkMode
-        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-        : 'bg-amber-50 text-amber-700 border-amber-200';
-    }
-    return darkMode
-      ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-      : 'bg-rose-50 text-rose-700 border-rose-200';
+  // Update individual volume weight
+  const handleWeightChange = (vol, rawValue) => {
+    setConfigError('');
+    const num = Math.max(0, Math.min(100, Number(rawValue) || 0));
+    setVolumeWeights((prev) => ({
+      ...prev,
+      [vol]: num
+    }));
   };
 
-  const currentQuestion = quizQuestions[currentIndex];
-  const totalQuestions = quizQuestions.length || 1;
-  const percentageScore = Math.round((score / totalQuestions) * 100);
-  const timedOutCount = userAnswers.filter((a) => a.timedOut).length;
-  const wrongChosenCount = userAnswers.filter((a) => !a.isCorrect && !a.timedOut).length;
+  // Normalize active volume weights so they sum to exactly 100%
+  const normalizeWeightsTo100 = () => {
+    const activeVols = VOLUME_SPECS.map((v) => v.volume).filter((v) => enabledVolumes[v]);
+    if (activeVols.length === 0) return;
+    const sum = activeVols.reduce((acc, v) => acc + (volumeWeights[v] || 0), 0);
+    if (sum === 0) {
+      distributeEqually();
+      return;
+    }
+    const updated = { ...volumeWeights };
+    let allocated = 0;
+    activeVols.forEach((v, idx) => {
+      if (idx === activeVols.length - 1) {
+        updated[v] = Math.max(0, 100 - allocated);
+      } else {
+        const pct = Math.round(((volumeWeights[v] || 0) / sum) * 100);
+        updated[v] = pct;
+        allocated += pct;
+      }
+    });
+    setVolumeWeights(updated);
+  };
 
-  const ratingInfo = useMemo(() => {
-    if (percentageScore >= 85) {
+  // Distribute 100% equally across enabled volumes
+  const distributeEqually = () => {
+    const activeVols = VOLUME_SPECS.map((v) => v.volume).filter((v) => enabledVolumes[v]);
+    if (activeVols.length === 0) return;
+    const base = Math.floor(100 / activeVols.length);
+    const rem = 100 - base * activeVols.length;
+    const updated = { ...volumeWeights };
+    activeVols.forEach((v, idx) => {
+      updated[v] = base + (idx < rem ? 1 : 0);
+    });
+    setVolumeWeights(updated);
+  };
+
+  // Compute live allocation preview based on selected volumes, weights, difficulty, and session size
+  const allocationPreview = useMemo(() => {
+    const activeVols = VOLUME_SPECS.map((v) => v.volume).filter((v) => enabledVolumes[v]);
+    const rawTotalWeight = activeVols.reduce((acc, v) => acc + (volumeWeights[v] || 0), 0);
+
+    const breakdown = {};
+    let totalPlanned = 0;
+
+    if (activeVols.length > 0 && rawTotalWeight > 0) {
+      // Calculate fractional quotas
+      const rawQuotas = activeVols.map((vol) => {
+        const pool = QUESTION_BANK.filter(
+          (q) =>
+            q.volume === vol &&
+            (selectedDifficulty === 'ALL' || q.difficulty === selectedDifficulty)
+        );
+        const normalizedRatio = (volumeWeights[vol] || 0) / rawTotalWeight;
+        const exact = normalizedRatio * sessionSize;
+        const floored = Math.min(pool.length, Math.floor(exact));
+        return {
+          vol,
+          poolCount: pool.length,
+          normalizedPct: Math.round(normalizedRatio * 100),
+          floored,
+          remainder: exact - Math.floor(exact)
+        };
+      });
+
+      let assigned = rawQuotas.reduce((s, r) => s + r.floored, 0);
+      let remaining = Math.max(0, sessionSize - assigned);
+
+      // Distribute remainder slots to largest remainders where pool capacity allows
+      const sortedByRem = [...rawQuotas].sort((a, b) => b.remainder - a.remainder);
+      for (const item of sortedByRem) {
+        if (remaining <= 0) break;
+        if (item.floored < item.poolCount) {
+          item.floored += 1;
+          remaining -= 1;
+        }
+      }
+
+      // If still remaining because some volume had small pool, top up from other active volumes
+      if (remaining > 0) {
+        for (const item of rawQuotas) {
+          while (remaining > 0 && item.floored < item.poolCount) {
+            item.floored += 1;
+            remaining -= 1;
+          }
+        }
+      }
+
+      rawQuotas.forEach((r) => {
+        breakdown[r.vol] = {
+          normalizedPct: r.normalizedPct,
+          plannedCount: r.floored,
+          availablePool: r.poolCount
+        };
+        totalPlanned += r.floored;
+      });
+    }
+
+    return {
+      activeVols,
+      rawTotalWeight,
+      breakdown,
+      totalPlanned
+    };
+  }, [enabledVolumes, volumeWeights, selectedDifficulty, sessionSize]);
+
+  // Export JSON database handler
+  const handleExportDatabase = () => {
+    const exportPayload = {
+      metadata: {
+        title: 'Manual of Air Traffic Services (MATS) Part 3 - ICAO English Question Bank',
+        effective_date: '2026-01-01',
+        volumes_covered: ['Volume II', 'Volume III', 'Volume IV', 'Volume V'],
+        total_unique_questions: QUESTION_BANK.length,
+        exported_at: new Date().toISOString()
+      },
+      questions: QUESTION_BANK.map((q) => ({
+        id: q.id,
+        volume: q.volume,
+        category: q.category,
+        reference: q.reference,
+        difficulty: q.difficulty,
+        question: q.question,
+        options: q.options.map((o) => o.text),
+        correct_answer: q.options.find((o) => o.isCorrect)?.text || '',
+        explanation: q.explanation
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MATS_Part3_ICAO_QuestionBank_Vol_II-V_${QUESTION_BANK.length}Q.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Start quiz session
+  const startQuiz = () => {
+    if (allocationPreview.activeVols.length === 0) {
+      setConfigError('Select at least one Volume (Volume II – V) to start the assessment.');
+      return;
+    }
+    if (allocationPreview.rawTotalWeight <= 0 || allocationPreview.totalPlanned === 0) {
+      setConfigError('Ensure the total weight percentage is greater than 0% and matching questions are available.');
+      return;
+    }
+    if (allocationPreview.rawTotalWeight <= 0 || allocationPreview.totalPlanned === 0) {
+      setConfigError('Pastikan total persentase bobot lebih dari 0% dan tersedia soal pada filter yang dipilih.');
+      return;
+    }
+
+    setConfigError('');
+    let compiled = [];
+
+    allocationPreview.activeVols.forEach((vol) => {
+      const targetCount = allocationPreview.breakdown[vol]?.plannedCount || 0;
+      if (targetCount > 0) {
+        const pool = QUESTION_BANK.filter(
+          (q) =>
+            q.volume === vol &&
+            (selectedDifficulty === 'ALL' || q.difficulty === selectedDifficulty)
+        );
+        const picked = shuffleArray(pool).slice(0, targetCount);
+        compiled = compiled.concat(picked);
+      }
+    });
+
+    const prepared = shuffleArray(compiled).map((q) => ({
+      ...q,
+      shuffledOptions: shuffleArray(q.options)
+    }));
+
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+    setActiveQuestions(prepared);
+    setCurrentIndex(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setScore(0);
+    setAnswerHistory([]);
+    setElapsedSeconds(0);
+    setScreen('quiz');
+  };
+
+  // Handle option selection
+  const handleSelectAnswer = (optIdx) => {
+    if (isAnswered) return;
+    const currentQ = activeQuestions[currentIndex];
+    const chosen = currentQ.shuffledOptions[optIdx];
+    const correctOpt = currentQ.shuffledOptions.find((o) => o.isCorrect);
+
+    setSelectedOption(optIdx);
+    setIsAnswered(true);
+
+    if (chosen.isCorrect) {
+      setScore((prev) => prev + 1);
+    }
+
+    setAnswerHistory((prev) => [
+      ...prev,
+      {
+        questionId: currentQ.id,
+        volume: currentQ.volume,
+        category: currentQ.category,
+        reference: currentQ.reference,
+        difficulty: currentQ.difficulty,
+        question: currentQ.question,
+        selectedText: chosen.text,
+        correctText: correctOpt.text,
+        isCorrect: chosen.isCorrect,
+        explanation: currentQ.explanation
+      }
+    ]);
+
+    advanceTimeoutRef.current = setTimeout(() => {
+      goToNextQuestion();
+    }, 2600);
+  };
+
+  const goToNextQuestion = () => {
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+    if (currentIndex + 1 < activeQuestions.length) {
+      setCurrentIndex((prev) => prev + 1);
+      setSelectedOption(null);
+      setIsAnswered(false);
+    } else {
+      setScreen('results');
+    }
+  };
+
+  const handleManualNext = () => {
+    goToNextQuestion();
+  };
+
+  const currentQuestion = activeQuestions[currentIndex];
+  const progressPercent =
+    activeQuestions.length > 0
+      ? Math.round(((currentIndex + (isAnswered ? 1 : 0)) / activeQuestions.length) * 100)
+      : 0;
+
+  const scorePercentage =
+    activeQuestions.length > 0 ? Math.round((score / activeQuestions.length) * 100) : 0;
+
+  const gradeInfo = useMemo(() => {
+    if (scorePercentage >= 90) {
       return {
-        label: 'Certified Controller',
-        subtitle: 'Penguasaan sangat baik di seluruh materi MATS Part 3 Volume II – V.',
-        icon: Award,
-        badgeClass: darkMode
-          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-          : 'bg-emerald-50 text-emerald-700 border-emerald-300',
-        ringColor: '#10b981'
+        label: 'Distinction (Rating Check Ready)',
+        color: 'text-emerald-600 dark:text-emerald-400'
       };
     }
-    if (percentageScore >= 70) {
+    if (scorePercentage >= 75) {
       return {
-        label: 'Operational Qualified',
-        subtitle: 'Pemahaman prosedur ATS solid. Tinjau referensi yang terlewat di bawah untuk skor maksimal.',
-        icon: CheckCircle2,
-        badgeClass: darkMode
-          ? 'bg-sky-500/15 text-sky-300 border-sky-500/40'
-          : 'bg-sky-50 text-sky-700 border-sky-300',
-        ringColor: '#0284c7'
+        label: 'Competent (Meets Evaluation Standard)',
+        color: 'text-sky-600 dark:text-sky-400'
+      };
+    }
+    if (scorePercentage >= 60) {
+      return {
+        label: 'Marginal (Further Procedural Review Advised)',
+        color: 'text-amber-600 dark:text-amber-400'
       };
     }
     return {
-      label: 'Needs Review',
-      subtitle: 'Pelajari kembali bagian-bagian MATS Part 3 Vol. II–V yang ditandai di bawah sebelum mengulang.',
-      icon: AlertTriangle,
-      badgeClass: darkMode
-        ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-        : 'bg-amber-50 text-amber-700 border-amber-300',
-      ringColor: '#f59e0b'
+      label: 'Below Passing Standard (<75%)',
+      color: 'text-rose-600 dark:text-rose-400'
     };
-  }, [percentageScore, darkMode]);
+  }, [scorePercentage]);
 
-  const filteredReviewAnswers = useMemo(() => {
-    return userAnswers
-      .map((item, originalIndex) => ({ ...item, originalIndex }))
-      .filter((item) => {
-        if (reviewFilter === 'correct') return item.isCorrect;
-        if (reviewFilter === 'incorrect') return !item.isCorrect && !item.timedOut;
-        if (reviewFilter === 'timeout') return item.timedOut;
-        return true;
-      });
-  }, [userAnswers, reviewFilter]);
+  // Helper for difficulty badge styling
+  const getDifficultyBadge = (diff) => {
+    if (diff === 'Easy') {
+      return darkMode
+        ? 'bg-emerald-500/12 text-emerald-300 border-emerald-500/25'
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+    }
+    if (diff === 'Medium') {
+      return darkMode
+        ? 'bg-amber-500/12 text-amber-300 border-amber-500/25'
+        : 'bg-amber-50 text-amber-700 border-amber-200/80';
+    }
+    return darkMode
+      ? 'bg-rose-500/12 text-rose-300 border-rose-500/25'
+      : 'bg-rose-50 text-rose-700 border-rose-200/80';
+  };
 
   return (
     <div
       className={`min-h-screen transition-colors duration-300 font-sans selection:bg-sky-500 selection:text-white ${
-        darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+        darkMode
+          ? 'bg-[#14171c] text-zinc-200'
+          : 'bg-[#f8fafc] text-slate-800'
       }`}
     >
-      {/* Subtle ATC Radar Grid Overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: darkMode
-            ? 'radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.16), transparent 60%), linear-gradient(to right, rgba(30, 41, 59, 0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(30, 41, 59, 0.35) 1px, transparent 1px)'
-            : 'radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.10), transparent 60%), linear-gradient(to right, rgba(203, 213, 225, 0.45) 1px, transparent 1px), linear-gradient(to bottom, rgba(203, 213, 225, 0.45) 1px, transparent 1px)',
-          backgroundSize: '100% 100%, 40px 40px, 40px 40px'
-        }}
-      />
-
-      {/* Sticky Header */}
+      {/* Top Navigation Bar */}
       <header
         className={`sticky top-0 z-30 border-b backdrop-blur-md transition-colors ${
           darkMode
-            ? 'bg-slate-950/85 border-slate-800/80'
-            : 'bg-white/85 border-slate-200'
+            ? 'bg-[#181b21]/90 border-zinc-800/80'
+            : 'bg-white/90 border-slate-200/80'
         }`}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
@@ -1702,11 +1689,15 @@ export default function App() {
               setScreen('welcome');
             }}
             className="flex items-center gap-3 text-left group focus:outline-none"
-            title="Kembali ke Konfigurasi Utama"
+            title="Return to Main Configuration"
           >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-sky-600 text-white shadow-lg shadow-sky-600/25 group-hover:bg-sky-500 transition-colors">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-sky-600/90 text-white shadow-md shadow-sky-600/15 group-hover:bg-sky-600 transition-colors">
               <Radar className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+              <span
+                className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ${
+                  darkMode ? 'ring-[#181b21]' : 'ring-white'
+                }`}
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -1716,42 +1707,65 @@ export default function App() {
                 <span
                   className={`hidden sm:inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     darkMode
-                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-                      : 'bg-sky-100 text-sky-700 border border-sky-200'
+                      ? 'bg-sky-500/12 text-sky-300 border border-sky-500/25'
+                      : 'bg-sky-50 text-sky-700 border border-sky-200/80'
                   }`}
                 >
                   AirNav Indonesia
                 </span>
               </div>
-              <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                MATS Part 3 • Vol. II – V Database ({QUESTION_BANK.length} Soal)
+              <p className={`text-xs ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                MATS Part 3 • Vol. II – V ({QUESTION_BANK.length} Verified Unique Questions)
               </p>
             </div>
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {!isInstalled ? (
+              <button
+                type="button"
+                onClick={handleInstallClick}
+                title="Download / Install App to Phone, Tablet, iPad, or Laptop"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              >
+                <MonitorDown className="w-3.5 h-3.5" />
+                <span>Install App</span>
+              </button>
+            ) : (
+              <span
+                className={`hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border ${
+                  darkMode
+                    ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>App Installed</span>
+              </span>
+            )}
+
             <button
               type="button"
               onClick={handleExportDatabase}
-              title="Export Full 500-Question JSON Database"
+              title="Export Full Unique JSON Database"
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
                 darkMode
-                  ? 'bg-slate-900 border-slate-800 text-emerald-400 hover:bg-slate-800'
-                  : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50 shadow-sm'
+                  ? 'bg-[#1e222a] border-zinc-800 text-emerald-300 hover:bg-[#252a34]'
+                  : 'bg-white border-slate-200/90 text-emerald-700 hover:bg-emerald-50/70 shadow-xs'
               }`}
             >
               <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Export JSON (500)</span>
+              <span className="hidden sm:inline">Export JSON ({QUESTION_BANK.length})</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setDarkMode((prev) => !prev)}
-              aria-label="Toggle Dark or Light Mode"
-              className={`p-2.5 rounded-xl border transition-all ${
+              onClick={() => setDarkMode(!darkMode)}
+              aria-label="Toggle color theme"
+              className={`p-2 rounded-xl border transition-colors ${
                 darkMode
-                  ? 'bg-slate-900 border-slate-800 text-amber-400 hover:bg-slate-800'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-sm'
+                  ? 'bg-[#1e222a] border-zinc-800 text-amber-300 hover:bg-[#252a34]'
+                  : 'bg-white border-slate-200/90 text-slate-600 hover:bg-slate-100 shadow-xs'
               }`}
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -1760,88 +1774,202 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        {/* =================================================================
-            SCREEN 1: WELCOME & CUSTOM PROPORTION BUILDER
-           ================================================================= */}
+      {/* Cross-Platform PWA Install Guide Modal (Android, iOS/iPadOS, Windows/Mac) */}
+      {showInstallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div
+            className={`w-full max-w-lg rounded-2xl border p-6 shadow-2xl transition-all ${
+              darkMode
+                ? 'bg-[#1b1f26] border-zinc-800 text-zinc-100'
+                : 'bg-white border-slate-200 text-slate-800'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-200/70 dark:border-zinc-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg">
+                    Download & Install ATS SWORD App
+                  </h3>
+                  <p className={`text-xs ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Runs standalone like a native application with full offline support.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInstallModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 my-5 text-xs sm:text-sm">
+              {/* Apple iPhone / iPad */}
+              <div
+                className={`p-3.5 rounded-xl border ${
+                  darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50 border-slate-200/80'
+                }`}
+              >
+                <div className="font-bold text-sky-600 dark:text-sky-400 mb-1 flex items-center gap-1.5">
+                  <span>1. Apple iPhone & iPad (Safari)</span>
+                </div>
+                <p className={darkMode ? 'text-zinc-300' : 'text-slate-600'}>
+                  Open this web app in <strong>Safari</strong>, tap the{' '}
+                  <span className="inline-flex items-center gap-1 font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                    <Share className="w-3 h-3" /> Share
+                  </span>{' '}
+                  icon on the toolbar, then select{' '}
+                  <span className="inline-flex items-center gap-1 font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                    <PlusSquare className="w-3 h-3" /> Add to Home Screen
+                  </span>
+                  .
+                </p>
+              </div>
+
+              {/* Android Phone & Tablet */}
+              <div
+                className={`p-3.5 rounded-xl border ${
+                  darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50 border-slate-200/80'
+                }`}
+              >
+                <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                  2. Android Phone & Tablet (Chrome / Edge)
+                </div>
+                <p className={darkMode ? 'text-zinc-300' : 'text-slate-600'}>
+                  Tap the three-dot menu (<strong>⋮</strong>) in the top-right corner of the
+                  browser, then select <strong>"Install app"</strong> or{' '}
+                  <strong>"Add to Home screen"</strong>.
+                </p>
+              </div>
+
+              {/* Laptop / PC */}
+              <div
+                className={`p-3.5 rounded-xl border ${
+                  darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50 border-slate-200/80'
+                }`}
+              >
+                <div className="font-bold text-amber-600 dark:text-amber-400 mb-1">
+                  3. Laptop / Desktop PC (Windows, macOS, Linux)
+                </div>
+                <p className={darkMode ? 'text-zinc-300' : 'text-slate-600'}>
+                  Click the <strong>Install (⊕ / screen with arrow)</strong> icon on the right
+                  side of the Google Chrome or Microsoft Edge address bar to install as a desktop
+                  app.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200/70 dark:border-zinc-800">
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+                <WifiOff className="w-3.5 h-3.5 text-emerald-500" />
+                {isOfflineReady ? 'Ready for offline operation' : 'Multi-Device PWA Ready'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowInstallModal(false)}
+                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold cursor-pointer"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Container */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        {/* ================================================================ */}
+        {/* SCREEN 1: WELCOME & VOLUME PROPORTION CONFIGURATOR               */}
+        {/* ================================================================ */}
         {screen === 'welcome' && (
           <div className="space-y-7">
             {/* Hero Section */}
             <div className="text-center space-y-3.5 max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border bg-sky-500/10 text-sky-500 border-sky-500/30">
+              <div
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase border ${
+                  darkMode
+                    ? 'bg-sky-500/10 text-sky-300 border-sky-500/25'
+                    : 'bg-sky-50 text-sky-700 border-sky-200/80'
+                }`}
+              >
                 <Database className="w-3.5 h-3.5" />
-                <span>500 Bank Soal Terintegrasi • Vol. II s.d. Vol. V</span>
+                <span>{QUESTION_BANK.length} Unique Non-Overlapping Questions • Vol. II – V</span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-                MATS Interactive Quiz:{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
-                  Part 3 Vol. II – Vol. V
+                ATS Proficiency &{' '}
+                <span className="bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent">
+                  MATS Question Bank
                 </span>
               </h1>
 
               <p
                 className={`text-sm sm:text-base leading-relaxed ${
-                  darkMode ? 'text-slate-400' : 'text-slate-600'
+                  darkMode ? 'text-zinc-400' : 'text-slate-600'
                 }`}
               >
-                Kustomisasi paket latihan atau simulasi ujian Anda: pilih cakupan{' '}
-                <strong className="text-sky-500">Volume II, III, IV, dan V</strong>,
-                atur <strong className="text-emerald-500">persentase porsi soal per Volume</strong>,
-                dan filter tingkat kesulitan (Easy / Medium / Hard).
+                Configure your desired combination of <strong>Volume II through Volume V</strong>,
+                set custom <strong>percentage weightings (%)</strong> per volume, and filter by
+                proficiency tier (<em>Easy, Medium, Hard</em>) in accordance with ICAO PANS-ATM and
+                MATS Part 3 standards.
               </p>
             </div>
 
-            {/* Volume & Percentage Proportion Configurator */}
+            {/* Volume & Percentage Configurator Card */}
             <div
-              className={`rounded-2xl border p-6 sm:p-8 shadow-xl transition-colors ${
+              className={`rounded-2xl border p-5 sm:p-7 transition-all ${
                 darkMode
-                  ? 'bg-slate-900/90 border-slate-800 shadow-black/40'
-                  : 'bg-white border-slate-200 shadow-slate-200/70'
+                  ? 'bg-[#1b1f26] border-zinc-800/90 shadow-xl shadow-black/20'
+                  : 'bg-white border-slate-200/90 shadow-lg shadow-slate-200/40'
               }`}
             >
               {/* Header Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-slate-800/40 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200/70 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-sky-500/15 text-sky-500">
-                    <PieChart className="w-5 h-5" />
+                  <div
+                    className={`p-2 rounded-lg ${
+                      darkMode ? 'bg-sky-500/12 text-sky-300' : 'bg-sky-50 text-sky-600'
+                    }`}
+                  >
+                    <Percent className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg">
-                      Pilih Volume &amp; Atur Porsi Persentase (%)
+                    <h2 className="text-base sm:text-lg font-bold">
+                      1. Select Volumes & Percentage Allocation
                     </h2>
-                    <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                      Centang Volume yang diujikan dan geser persentase komposisi soalnya
+                    <p className={`text-xs ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                      Check the volumes to include and adjust their relative percentage weights.
                     </p>
                   </div>
                 </div>
 
-                {/* Total Percentage Indicator + Normalize Button */}
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-mono font-bold px-3 py-1.5 rounded-lg border ${
-                      totalConfiguredPercentage === 100
-                        ? darkMode
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                        : darkMode
-                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                        : 'bg-amber-50 text-amber-700 border-amber-300'
+                  <button
+                    type="button"
+                    onClick={normalizeWeightsTo100}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      darkMode
+                        ? 'bg-[#222730] border-zinc-700/80 text-zinc-200 hover:bg-[#2a303b]'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    Total Bobot: {totalConfiguredPercentage}%
-                  </span>
-
-                  {totalConfiguredPercentage !== 100 && (
-                    <button
-                      type="button"
-                      onClick={normalizeWeightsTo100}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition-colors"
-                    >
-                      Set ke 100%
-                    </button>
-                  )}
+                    Normalize to 100%
+                  </button>
+                  <button
+                    type="button"
+                    onClick={distributeEqually}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      darkMode
+                        ? 'bg-[#222730] border-zinc-700/80 text-sky-300 hover:bg-[#2a303b]'
+                        : 'bg-sky-50/80 border-sky-200/80 text-sky-700 hover:bg-sky-100/70'
+                    }`}
+                  >
+                    Equal Split (%)
+                  </button>
                 </div>
               </div>
 
@@ -1850,6 +1978,7 @@ export default function App() {
                 {VOLUME_SPECS.map((spec) => {
                   const isEnabled = enabledVolumes[spec.volume];
                   const weight = volumeWeights[spec.volume] || 0;
+                  const volUniqueTotal = QUESTION_BANK.filter((q) => q.volume === spec.volume).length;
                   const preview = allocationPreview.breakdown[spec.volume] || {
                     normalizedPct: 0,
                     plannedCount: 0,
@@ -1862,11 +1991,11 @@ export default function App() {
                       className={`rounded-xl border p-4 transition-all ${
                         isEnabled
                           ? darkMode
-                            ? 'bg-slate-950/75 border-sky-500/40'
-                            : 'bg-sky-50/40 border-sky-300'
+                            ? 'bg-[#21262f] border-sky-500/35'
+                            : 'bg-sky-50/45 border-sky-200'
                           : darkMode
-                          ? 'bg-slate-950/30 border-slate-800/70 opacity-60'
-                          : 'bg-slate-100/60 border-slate-200 opacity-65'
+                          ? 'bg-[#171a20] border-zinc-800/80 opacity-60'
+                          : 'bg-slate-50/90 border-slate-200/80 opacity-65'
                       }`}
                     >
                       {/* Top Row: Checkbox + Volume Name + Quota Badge */}
@@ -1876,7 +2005,7 @@ export default function App() {
                             type="checkbox"
                             checked={isEnabled}
                             onChange={() => toggleVolume(spec.volume)}
-                            className="mt-1 w-4 h-4 rounded accent-sky-500 cursor-pointer"
+                            className="mt-1 w-4 h-4 rounded accent-sky-600 cursor-pointer"
                           />
                           <div>
                             <div className="font-bold text-sm flex items-center gap-2">
@@ -1884,77 +2013,85 @@ export default function App() {
                               <span
                                 className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
                                   darkMode
-                                    ? 'bg-slate-800 text-slate-300'
-                                    : 'bg-white border border-slate-200 text-slate-600'
+                                    ? 'bg-[#282e39] text-zinc-300'
+                                    : 'bg-white border border-slate-200/90 text-slate-600'
                                 }`}
                               >
-                                {spec.targetTotal} Bank Soal
+                                {volUniqueTotal} Questions
                               </span>
                             </div>
                             <p
                               className={`text-xs mt-0.5 ${
-                                darkMode ? 'text-slate-400' : 'text-slate-600'
+                                darkMode ? 'text-zinc-400' : 'text-slate-600'
                               }`}
                             >
-                              {spec.title} ({spec.sections.join(', ')})
+                              {spec.title}
                             </p>
                           </div>
                         </label>
                       </div>
 
-                      {/* Slider & Numeric Percentage Control */}
-                      <div className="mt-3 pt-3 border-t border-slate-800/30 dark:border-slate-800 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className={darkMode ? 'text-slate-400' : 'text-slate-600'}>
-                            Porsi Volume:
+                      {/* Section Pills */}
+                      <div className="flex flex-wrap gap-1.5 mb-3 pl-6">
+                        {spec.sections.map((sec) => (
+                          <span
+                            key={sec}
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+                              darkMode
+                                ? 'bg-[#282e39] text-zinc-400'
+                                : 'bg-white border border-slate-200/80 text-slate-500'
+                            }`}
+                          >
+                            {sec}
                           </span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-sky-500">
-                              {isEnabled ? `${weight}%` : '0%'}
-                            </span>
-                            {isEnabled && totalConfiguredPercentage !== 100 && (
-                              <span className="text-[11px] text-slate-400">
-                                (Efektif {preview.normalizedPct}%)
-                              </span>
-                            )}
-                            <span
-                              className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md ${
-                                isEnabled
-                                  ? darkMode
-                                    ? 'bg-emerald-500/15 text-emerald-300'
-                                    : 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-slate-800 text-slate-500'
-                              }`}
-                            >
-                              {isEnabled ? `${preview.plannedCount} Soal` : 'Nonaktif'}
-                            </span>
-                          </div>
-                        </div>
+                        ))}
+                      </div>
 
+                      {/* Slider & Numeric Input */}
+                      <div className="pl-6 space-y-2">
                         <div className="flex items-center gap-3">
                           <input
                             type="range"
-                            min="0"
-                            max="100"
-                            step="5"
+                            min={0}
+                            max={100}
+                            step={5}
                             disabled={!isEnabled}
                             value={isEnabled ? weight : 0}
                             onChange={(e) => handleWeightChange(spec.volume, e.target.value)}
-                            className="w-full accent-sky-500 cursor-pointer disabled:cursor-not-allowed"
+                            className="w-full accent-sky-600 cursor-pointer disabled:cursor-not-allowed"
                           />
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            disabled={!isEnabled}
-                            value={isEnabled ? weight : 0}
-                            onChange={(e) => handleWeightChange(spec.volume, e.target.value)}
-                            className={`w-16 px-2 py-1 rounded-lg border text-xs font-mono text-right ${
-                              darkMode
-                                ? 'bg-slate-900 border-slate-700 text-slate-100'
-                                : 'bg-white border-slate-300 text-slate-900'
-                            }`}
-                          />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              disabled={!isEnabled}
+                              value={isEnabled ? weight : 0}
+                              onChange={(e) => handleWeightChange(spec.volume, e.target.value)}
+                              className={`w-14 px-2 py-1 text-right text-xs font-mono font-bold rounded-lg border focus:outline-none ${
+                                darkMode
+                                  ? 'bg-[#181b21] border-zinc-700 text-zinc-100'
+                                  : 'bg-white border-slate-300 text-slate-800'
+                              }`}
+                            />
+                            <span className="text-xs font-bold text-slate-400">%</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className={darkMode ? 'text-zinc-400' : 'text-slate-500'}>
+                            Effective Share:{' '}
+                            <strong className={darkMode ? 'text-sky-300' : 'text-sky-700'}>
+                              {preview.normalizedPct}%
+                            </strong>
+                          </span>
+                          <span className={darkMode ? 'text-zinc-300' : 'text-slate-700'}>
+                            Session Quota:{' '}
+                            <strong>{preview.plannedCount} items</strong>{' '}
+                            <span className="text-slate-400">
+                              ({preview.availablePool} available)
+                            </span>
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1962,154 +2099,148 @@ export default function App() {
                 })}
               </div>
 
-              {/* Difficulty Tier & Total Session Questions Selector */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Total Weight Indicator Bar */}
+              <div
+                className={`rounded-xl border p-3.5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                  allocationPreview.rawTotalWeight === 100
+                    ? darkMode
+                      ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300'
+                      : 'bg-emerald-50/80 border-emerald-200/80 text-emerald-800'
+                    : darkMode
+                    ? 'bg-amber-500/10 border-amber-500/25 text-amber-300'
+                    : 'bg-amber-50/80 border-amber-200/80 text-amber-800'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                  <SlidersHorizontal className="w-4 h-4 shrink-0" />
+                  <span>
+                    Total Input Weight: <strong>{allocationPreview.rawTotalWeight}%</strong>
+                    {allocationPreview.rawTotalWeight !== 100 &&
+                      allocationPreview.rawTotalWeight > 0 &&
+                      ' (Automatically normalized proportionally to 100%)'}
+                  </span>
+                </div>
+                <div className="text-xs font-mono font-bold">
+                  Session Total: {allocationPreview.totalPlanned} / {sessionSize} Questions
+                </div>
+              </div>
+
+              {/* Difficulty & Session Size Selectors */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
                 {/* Difficulty Filter */}
-                <div
-                  className={`p-4 rounded-xl border ${
-                    darkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-500 mb-3">
-                    <Gauge className="w-4 h-4" />
-                    <span>Filter Tingkat Kesulitan</span>
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-zinc-400">
+                    2. Filter by Difficulty Level
+                  </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {DIFFICULTY_LEVELS.map((lvl) => (
-                      <button
-                        key={lvl.id}
-                        type="button"
-                        onClick={() => setSelectedDifficulty(lvl.id)}
-                        className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
-                          selectedDifficulty === lvl.id
-                            ? 'bg-sky-600 border-sky-500 text-white shadow-sm'
-                            : darkMode
-                            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
-                            : 'bg-white border-slate-200 text-slate-700 hover:border-sky-300'
-                        }`}
-                      >
-                        {lvl.label}
-                      </button>
-                    ))}
+                    {DIFFICULTY_LEVELS.map((lvl) => {
+                      const active = selectedDifficulty === lvl.id;
+                      return (
+                        <button
+                          key={lvl.id}
+                          type="button"
+                          onClick={() => setSelectedDifficulty(lvl.id)}
+                          className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all ${
+                            active
+                              ? 'bg-sky-600/95 border-sky-600 text-white shadow-sm'
+                              : darkMode
+                              ? 'bg-[#21262f] border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                              : 'bg-slate-50/90 border-slate-200 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {lvl.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Total Session Questions Selector */}
-                <div
-                  className={`p-4 rounded-xl border ${
-                    darkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-500 mb-3">
-                    <SlidersHorizontal className="w-4 h-4" />
-                    <span>Total Soal dalam Sesi Ujian</span>
-                  </div>
+                {/* Session Question Count */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-zinc-400">
+                    3. Questions per Assessment Session
+                  </label>
                   <div className="grid grid-cols-4 gap-2">
-                    {SESSION_SIZE_OPTIONS.map((count) => (
-                      <button
-                        key={count}
-                        type="button"
-                        onClick={() => setTargetSessionSize(count)}
-                        className={`py-2 rounded-lg text-xs sm:text-sm font-mono font-bold border transition-all ${
-                          targetSessionSize === count
-                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
-                            : darkMode
-                            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
-                            : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
-                        }`}
-                      >
-                        {count}
-                      </button>
-                    ))}
+                    {SESSION_SIZE_OPTIONS.map((count) => {
+                      const active = sessionSize === count;
+                      return (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => setSessionSize(count)}
+                          className={`py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all ${
+                            active
+                              ? 'bg-sky-600/95 border-sky-600 text-white shadow-sm'
+                              : darkMode
+                              ? 'bg-[#21262f] border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                              : 'bg-slate-50/90 border-slate-200 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {count} Qs
+                        </button>
+                      );
+                    })}
                   </div>
-                  <p className={`text-[11px] mt-2.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Waktu pengerjaan: <strong>15 detik/soal</strong> dengan transisi otomatis (Auto-Next).
+                  <p className={`text-[11px] mt-2 ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    Estimated completion time: ~{Math.round(sessionSize * 1.2)} mins • Answer
+                    choices randomized automatically.
                   </p>
                 </div>
               </div>
 
-              {/* Live Proportion Summary Strip */}
-              <div
-                className={`p-4 rounded-xl border mb-6 flex flex-wrap items-center justify-between gap-3 ${
-                  darkMode ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-100/80 border-slate-200'
-                }`}
-              >
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="font-bold text-sky-500">Komposisi Sesi:</span>
-                  {VOLUME_SPECS.map((spec) => {
-                    const info = allocationPreview.breakdown[spec.volume];
-                    if (!info?.enabled) return null;
-                    return (
-                      <span
-                        key={spec.volume}
-                        className={`px-2.5 py-1 rounded-md font-mono font-semibold border ${
-                          darkMode
-                            ? 'bg-slate-900 border-slate-700 text-slate-200'
-                            : 'bg-white border-slate-300 text-slate-800'
-                        }`}
-                      >
-                        {spec.shortLabel}: {info.plannedCount} soal ({info.normalizedPct}%)
-                      </span>
-                    );
-                  })}
+              {/* Validation Error Message */}
+              {configError && (
+                <div className="mt-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-500 text-xs sm:text-sm font-medium flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{configError}</span>
+                </div>
+              )}
+
+              {/* Start Button */}
+              <div className="mt-7 flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-slate-200/70 dark:border-zinc-800">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>
+                    Reference: Manual of ATS (Effective 1-Jan-26) • ICAO Doc 4444 Aligned
+                  </span>
                 </div>
 
-                <div className="text-xs font-mono font-bold text-emerald-500">
-                  Siap Diujikan: {allocationPreview.actualTotalQuestions} Soal
-                </div>
+                <button
+                  type="button"
+                  onClick={startQuiz}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-[0.99] text-white font-semibold text-sm sm:text-base shadow-md shadow-sky-600/20 transition-all cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Start Assessment ({allocationPreview.totalPlanned} Questions)</span>
+                </button>
               </div>
-
-              {/* Start Quiz CTA */}
-              <button
-                type="button"
-                disabled={allocationPreview.actualTotalQuestions === 0}
-                onClick={startQuiz}
-                className="group w-full py-4 px-6 rounded-xl bg-gradient-to-r from-sky-600 via-sky-500 to-emerald-500 hover:from-sky-500 hover:to-emerald-400 disabled:opacity-50 text-white font-bold text-base sm:text-lg shadow-lg shadow-sky-600/30 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3"
-              >
-                <Play className="w-5 h-5 fill-current transition-transform group-hover:translate-x-0.5" />
-                <span>
-                  Start Quiz ({allocationPreview.actualTotalQuestions} Soal •{' '}
-                  {selectedDifficulty === 'ALL' ? 'Semua Level' : `Level ${selectedDifficulty}`})
-                </span>
-              </button>
             </div>
           </div>
         )}
 
-        {/* =================================================================
-            SCREEN 2: QUIZ SCREEN (15s COUNTDOWN + AUTO-NEXT)
-           ================================================================= */}
+        {/* ================================================================ */}
+        {/* SCREEN 2: ACTIVE QUIZ                                            */}
+        {/* ================================================================ */}
         {screen === 'quiz' && currentQuestion && (
-          <div className="space-y-6">
-            {/* Top Status & 15s Timer Bar */}
+          <div className="max-w-3xl mx-auto space-y-6">
+            {/* Top Status & Progress Bar */}
             <div
-              className={`rounded-2xl border p-4 sm:p-5 transition-colors ${
-                darkMode
-                  ? 'bg-slate-900/90 border-slate-800'
-                  : 'bg-white border-slate-200 shadow-sm'
+              className={`p-4 sm:p-5 rounded-2xl border ${
+                darkMode ? 'bg-[#1b1f26] border-zinc-800/90' : 'bg-white border-slate-200/90 shadow-xs'
               }`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm sm:text-base font-extrabold tracking-tight">
-                    Soal {currentIndex + 1}{' '}
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-400'}>
-                      dari {quizQuestions.length}
-                    </span>
-                  </span>
-
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                      darkMode
-                        ? 'bg-sky-500/10 text-sky-300 border-sky-500/30'
-                        : 'bg-sky-50 text-sky-700 border-sky-200'
+                    className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ${
+                      darkMode ? 'bg-sky-500/12 text-sky-300' : 'bg-sky-50 text-sky-700'
                     }`}
                   >
-                    {currentQuestion.volume} • {currentQuestion.section}
+                    <Layers className="w-3.5 h-3.5" />
+                    Question {currentIndex + 1} / {activeQuestions.length}
                   </span>
-
                   <span
-                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${getDifficultyBadgeStyle(
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${getDifficultyBadge(
                       currentQuestion.difficulty
                     )}`}
                   >
@@ -2117,516 +2248,393 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-xs font-medium ${
+                      darkMode ? 'text-zinc-400' : 'text-slate-500'
+                    }`}
+                  >
+                    Score: <strong className="text-emerald-500">{score}</strong>
+                  </span>
                   <div
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold ${
+                    className={`inline-flex items-center gap-1.5 text-xs font-mono font-semibold px-2.5 py-1 rounded-lg ${
                       darkMode
-                        ? 'bg-slate-950 border-slate-800 text-emerald-400'
-                        : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        ? 'bg-[#222730] text-zinc-300'
+                        : 'bg-slate-100 text-slate-700'
                     }`}
                   >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Skor: {score}</span>
-                  </div>
-
-                  {streak >= 2 && (
-                    <div className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-bold">
-                      <Flame className="w-3.5 h-3.5" />
-                      <span>{streak}x</span>
-                    </div>
-                  )}
-
-                  <div
-                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs sm:text-sm font-mono font-extrabold transition-colors ${
-                      isLocked
-                        ? darkMode
-                          ? 'bg-slate-950 border-slate-800 text-slate-400'
-                          : 'bg-slate-100 border-slate-200 text-slate-500'
-                        : timeLeft <= 3
-                        ? 'bg-rose-500/20 border-rose-500 text-rose-500 animate-pulse'
-                        : timeLeft <= 6
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-500'
-                        : darkMode
-                        ? 'bg-slate-950 border-sky-500/40 text-sky-400'
-                        : 'bg-sky-50 border-sky-300 text-sky-700'
-                    }`}
-                  >
-                    <Timer className="w-4 h-4" />
-                    <span>00:{String(timeLeft).padStart(2, '0')}</span>
+                    <Clock className="w-3.5 h-3.5 text-sky-500" />
+                    <span>{formatTime(elapsedSeconds)}</span>
                   </div>
                 </div>
               </div>
 
+              {/* Progress Bar */}
               <div
-                className={`w-full h-2 rounded-full overflow-hidden mb-2 ${
-                  darkMode ? 'bg-slate-800' : 'bg-slate-200'
+                className={`w-full h-2 rounded-full overflow-hidden ${
+                  darkMode ? 'bg-[#262b35]' : 'bg-slate-100'
                 }`}
               >
                 <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-300 ease-out"
-                  style={{
-                    width: `${
-                      ((currentIndex + (isLocked ? 1 : 0)) / quizQuestions.length) * 100
-                    }%`
-                  }}
-                />
-              </div>
-
-              <div
-                className={`w-full h-1.5 rounded-full overflow-hidden ${
-                  darkMode ? 'bg-slate-800/80' : 'bg-slate-200/80'
-                }`}
-              >
-                <div
-                  className={`h-full transition-all duration-1000 linear ${
-                    timeLeft <= 3
-                      ? 'bg-rose-500'
-                      : timeLeft <= 6
-                      ? 'bg-amber-500'
-                      : 'bg-sky-500'
-                  }`}
-                  style={{
-                    width: `${(timeLeft / QUESTION_TIME_LIMIT) * 100}%`
-                  }}
+                  className="h-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all duration-300 ease-out rounded-full"
+                  style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
 
             {/* Question Card */}
             <div
-              className={`rounded-2xl border p-6 sm:p-8 shadow-xl transition-colors ${
+              className={`p-6 sm:p-8 rounded-2xl border transition-all ${
                 darkMode
-                  ? 'bg-slate-900/95 border-slate-800 shadow-black/40'
-                  : 'bg-white border-slate-200 shadow-slate-200/60'
+                  ? 'bg-[#1b1f26] border-zinc-800/90 shadow-xl shadow-black/20'
+                  : 'bg-white border-slate-200/90 shadow-lg shadow-slate-200/35'
               }`}
             >
-              <div className="mb-6 sm:mb-7">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono uppercase tracking-wider text-sky-500 mb-2">
+              {/* Reference & Category Tag */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <span
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
+                    darkMode
+                      ? 'bg-[#242933] text-zinc-300 border border-zinc-700/80'
+                      : 'bg-slate-100/90 text-slate-700 border border-slate-200/80'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-sky-500" />
                   <span>{currentQuestion.category}</span>
-                  <span className={darkMode ? 'text-slate-500' : 'text-slate-400'}>
-                    ID: {currentQuestion.id}
-                  </span>
-                </div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold leading-snug">
-                  {currentQuestion.question}
-                </h2>
+                </span>
+                <span
+                  className={`text-xs font-mono ${
+                    darkMode ? 'text-zinc-400' : 'text-slate-500'
+                  }`}
+                >
+                  {currentQuestion.reference} • {currentQuestion.id}
+                </span>
               </div>
 
+              {/* Question Text */}
+              <h2 className="text-lg sm:text-xl font-bold leading-snug mb-6">
+                {currentQuestion.question}
+              </h2>
+
+              {/* Multiple Choice Options */}
               <div className="space-y-3">
-                {currentQuestion.options.map((optionText, idx) => {
-                  const isCorrectOption = idx === currentQuestion.correctIndex;
-                  const isSelectedOption = idx === selectedOption;
+                {currentQuestion.shuffledOptions.map((opt, idx) => {
+                  const letter = ['A', 'B', 'C', 'D'][idx];
+                  const isSelected = selectedOption === idx;
+                  const isCorrectOption = opt.isCorrect;
 
-                  let containerClasses = '';
-                  let letterBadgeClasses = '';
+                  let buttonStyle = darkMode
+                    ? 'bg-[#21262f] border-zinc-800 hover:border-sky-500/45 hover:bg-[#262c36] text-zinc-200'
+                    : 'bg-slate-50/75 border-slate-200/90 hover:border-sky-400 hover:bg-sky-50/45 text-slate-800';
 
-                  if (!isLocked) {
-                    containerClasses = darkMode
-                      ? 'bg-slate-950/70 border-slate-800 hover:border-sky-500/70 hover:bg-slate-800/70 text-slate-200'
-                      : 'bg-slate-50/80 border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 text-slate-800';
-                    letterBadgeClasses = darkMode
-                      ? 'bg-slate-800 text-slate-300 group-hover:bg-sky-600 group-hover:text-white'
-                      : 'bg-white border border-slate-300 text-slate-700 group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600';
-                  } else if (isCorrectOption) {
-                    containerClasses = darkMode
-                      ? 'bg-emerald-950/55 border-emerald-500 text-emerald-100 shadow-md shadow-emerald-950/50'
-                      : 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
-                    letterBadgeClasses = 'bg-emerald-500 text-white';
-                  } else if (isSelectedOption && !isCorrectOption) {
-                    containerClasses = darkMode
-                      ? 'bg-rose-950/55 border-rose-500 text-rose-100'
-                      : 'bg-rose-50 border-rose-500 text-rose-950';
-                    letterBadgeClasses = 'bg-rose-500 text-white';
-                  } else {
-                    containerClasses = darkMode
-                      ? 'bg-slate-950/30 border-slate-800/60 text-slate-500 opacity-60'
-                      : 'bg-slate-50/50 border-slate-200/70 text-slate-400 opacity-65';
-                    letterBadgeClasses = darkMode
-                      ? 'bg-slate-900 text-slate-600'
-                      : 'bg-slate-200/70 text-slate-400';
+                  let badgeStyle = darkMode
+                    ? 'bg-[#2a303c] text-zinc-300 border-zinc-700'
+                    : 'bg-white text-slate-600 border-slate-300/90';
+
+                  if (isAnswered) {
+                    if (isCorrectOption) {
+                      buttonStyle = darkMode
+                        ? 'bg-emerald-500/12 border-emerald-500/60 text-emerald-200'
+                        : 'bg-emerald-50/90 border-emerald-500 text-emerald-950';
+                      badgeStyle = 'bg-emerald-500 text-white border-emerald-500';
+                    } else if (isSelected && !isCorrectOption) {
+                      buttonStyle = darkMode
+                        ? 'bg-rose-500/12 border-rose-500/60 text-rose-200'
+                        : 'bg-rose-50/90 border-rose-500 text-rose-950';
+                      badgeStyle = 'bg-rose-500 text-white border-rose-500';
+                    } else {
+                      buttonStyle = darkMode
+                        ? 'bg-[#181b21]/70 border-zinc-800/60 text-zinc-500 opacity-60'
+                        : 'bg-slate-50/50 border-slate-200/60 text-slate-400 opacity-65';
+                    }
                   }
 
                   return (
                     <button
                       key={idx}
                       type="button"
-                      disabled={isLocked}
-                      onClick={() => handleSelectOption(idx)}
-                      className={`group w-full flex items-start sm:items-center gap-3.5 p-4 rounded-xl border-2 text-left transition-all duration-150 ${containerClasses} ${
-                        !isLocked ? 'cursor-pointer' : 'cursor-default'
+                      disabled={isAnswered}
+                      onClick={() => handleSelectAnswer(idx)}
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-150 flex items-start gap-3.5 ${buttonStyle} ${
+                        !isAnswered ? 'cursor-pointer active:scale-[0.995]' : 'cursor-default'
                       }`}
                     >
                       <span
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${letterBadgeClasses}`}
+                        className={`shrink-0 w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold transition-colors ${badgeStyle}`}
                       >
-                        {OPTION_LETTERS[idx]}
+                        {letter}
                       </span>
-
-                      <span className="flex-1 text-sm sm:text-base font-medium leading-relaxed">
-                        {optionText}
+                      <span className="flex-1 text-sm sm:text-base font-medium leading-relaxed pt-0.5">
+                        {opt.text}
                       </span>
-
-                      {isLocked && isCorrectOption && (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-1 sm:mt-0" />
+                      {isAnswered && isCorrectOption && (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-1" />
                       )}
-                      {isLocked && isSelectedOption && !isCorrectOption && (
-                        <XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-1 sm:mt-0" />
+                      {isAnswered && isSelected && !isCorrectOption && (
+                        <XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-1" />
                       )}
                     </button>
                   );
                 })}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-800/40 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span className={darkMode ? 'text-slate-400' : 'text-slate-500'}>
-                  {isLocked
-                    ? selectedOption === -1
-                      ? 'Waktu habis! Otomatis lanjut ke soal berikutnya...'
-                      : 'Jawaban tercatat! Otomatis lanjut ke soal berikutnya...'
-                    : 'Klik pilihan jawaban (atau tekan tombol A–D / 1–4) untuk langsung lanjut'}
-                </span>
-                <span className="font-mono text-sky-500 font-semibold">Auto-Next Active</span>
-              </div>
+              {/* Instant Explanation Banner */}
+              {isAnswered && (
+                <div
+                  className={`mt-6 p-4 rounded-xl border text-sm leading-relaxed ${
+                    currentQuestion.shuffledOptions[selectedOption]?.isCorrect
+                      ? darkMode
+                        ? 'bg-emerald-950/35 border-emerald-500/25 text-emerald-200'
+                        : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                      : darkMode
+                      ? 'bg-amber-950/35 border-amber-500/25 text-amber-200'
+                      : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="font-bold flex items-center gap-1.5">
+                      {currentQuestion.shuffledOptions[selectedOption]?.isCorrect ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          Correct Answer!
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-4 h-4 text-rose-500" />
+                          Incorrect — MATS Reference Rationale:
+                        </>
+                      )}
+                    </span>
+                    <span className="text-xs opacity-75">Auto-advancing...</span>
+                  </div>
+                  <p className="opacity-95">{currentQuestion.explanation}</p>
+
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleManualNext}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <span>
+                        {currentIndex + 1 < activeQuestions.length
+                          ? 'Next Question'
+                          : 'View Results'}
+                      </span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* =================================================================
-            SCREEN 3: RESULT SCREEN + VERIFIED MATS REFERENCE REVIEW
-           ================================================================= */}
+        {/* ================================================================ */}
+        {/* SCREEN 3: FINAL SCOREBOARD & REVIEW                              */}
+        {/* ================================================================ */}
         {screen === 'results' && (
-          <div className="space-y-8">
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Summary Score Card */}
             <div
-              className={`rounded-2xl border p-6 sm:p-8 shadow-xl ${
+              className={`p-6 sm:p-10 rounded-3xl border text-center relative overflow-hidden ${
                 darkMode
-                  ? 'bg-slate-900/95 border-slate-800 shadow-black/40'
-                  : 'bg-white border-slate-200 shadow-slate-200/70'
+                  ? 'bg-[#1b1f26] border-zinc-800/90 shadow-xl shadow-black/25'
+                  : 'bg-white border-slate-200/90 shadow-xl shadow-slate-200/40'
               }`}
             >
-              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="52"
-                      fill="none"
-                      stroke={darkMode ? '#1e293b' : '#e2e8f0'}
-                      strokeWidth="10"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="52"
-                      fill="none"
-                      stroke={ratingInfo.ringColor}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={2 * Math.PI * 52}
-                      strokeDashoffset={2 * Math.PI * 52 * (1 - percentageScore / 100)}
-                      className="transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-extrabold tracking-tight">
-                      {percentageScore}%
-                    </span>
-                    <span
-                      className={`text-[11px] uppercase font-semibold tracking-wider ${
-                        darkMode ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      Skor Akhir
-                    </span>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-sky-500/12 text-sky-500 mb-4">
+                <Award className="w-9 h-9" />
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                MATS Proficiency Assessment Complete
+              </h2>
+              <p className={`mt-1 text-sm ${darkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                Competency Evaluation — MATS Part 3 ({activeQuestions.length} Questions)
+              </p>
+
+              {/* Big Score Display */}
+              <div className="my-7 flex flex-col items-center justify-center">
+                <div className="text-5xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-sky-600 to-emerald-600 bg-clip-text text-transparent">
+                  {scorePercentage}%
+                </div>
+                <div className={`mt-2 text-base font-bold ${gradeInfo.color}`}>
+                  {gradeInfo.label}
+                </div>
+              </div>
+
+              {/* Metrics Row */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-5 max-w-lg mx-auto mb-8">
+                <div
+                  className={`p-3.5 rounded-2xl border ${
+                    darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50/90 border-slate-200/80'
+                  }`}
+                >
+                  <div className="text-xs text-slate-400">Correct</div>
+                  <div className="text-xl font-extrabold text-emerald-500 mt-0.5">
+                    {score} / {activeQuestions.length}
                   </div>
                 </div>
-
-                <div className="flex-1 text-center md:text-left space-y-3">
-                  <div
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs sm:text-sm font-bold ${ratingInfo.badgeClass}`}
-                  >
-                    <ratingInfo.icon className="w-4 h-4" />
-                    <span>{ratingInfo.label}</span>
+                <div
+                  className={`p-3.5 rounded-2xl border ${
+                    darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50/90 border-slate-200/80'
+                  }`}
+                >
+                  <div className="text-xs text-slate-400">Incorrect</div>
+                  <div className="text-xl font-extrabold text-rose-500 mt-0.5">
+                    {activeQuestions.length - score}
                   </div>
-
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    Hasil Ujian MATS Part 3 (Vol. II – V)
-                  </h2>
-
-                  <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {ratingInfo.subtitle}
-                  </p>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                    <div
-                      className={`p-3 rounded-xl border ${
-                        darkMode ? 'bg-slate-950/70 border-slate-800' : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="text-xs text-slate-400">Benar</div>
-                      <div className="text-lg font-bold text-emerald-500">
-                        {score} / {totalQuestions}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`p-3 rounded-xl border ${
-                        darkMode ? 'bg-slate-950/70 border-slate-800' : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="text-xs text-slate-400">Salah</div>
-                      <div className="text-lg font-bold text-rose-500">{wrongChosenCount}</div>
-                    </div>
-
-                    <div
-                      className={`p-3 rounded-xl border ${
-                        darkMode ? 'bg-slate-950/70 border-slate-800' : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="text-xs text-slate-400">Waktu Habis</div>
-                      <div className="text-lg font-bold text-amber-500">{timedOutCount}</div>
-                    </div>
-
-                    <div
-                      className={`p-3 rounded-xl border ${
-                        darkMode ? 'bg-slate-950/70 border-slate-800' : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="text-xs text-slate-400">Total Waktu</div>
-                      <div className="text-lg font-bold font-mono text-sky-500">
-                        {formatDuration(totalElapsedSeconds)}
-                      </div>
-                    </div>
+                </div>
+                <div
+                  className={`p-3.5 rounded-2xl border ${
+                    darkMode ? 'bg-[#21262f] border-zinc-800' : 'bg-slate-50/90 border-slate-200/80'
+                  }`}
+                >
+                  <div className="text-xs text-slate-400">Elapsed Time</div>
+                  <div className="text-xl font-extrabold text-sky-500 mt-0.5 font-mono">
+                    {formatTime(elapsedSeconds)}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-800/40 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-3">
+              {/* Breakdown Per Volume */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto mb-8 text-left">
+                {VOLUME_SPECS.map((spec) => {
+                  const volRecords = answerHistory.filter((r) => r.volume === spec.volume);
+                  if (volRecords.length === 0) return null;
+                  const volCorrect = volRecords.filter((r) => r.isCorrect).length;
+                  return (
+                    <div
+                      key={spec.volume}
+                      className={`p-3 rounded-xl border ${
+                        darkMode
+                          ? 'bg-[#21262f]/90 border-zinc-800'
+                          : 'bg-slate-50/90 border-slate-200/80'
+                      }`}
+                    >
+                      <div className="text-[11px] font-bold text-sky-500">{spec.shortLabel}</div>
+                      <div className="text-sm font-extrabold mt-0.5">
+                        {volCorrect} / {volRecords.length}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        Accuracy {Math.round((volCorrect / volRecords.length) * 100)}%
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={startQuiz}
-                  className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-sky-600/25 transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm shadow-md shadow-sky-600/20 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Ulangi Paket Komposisi Ini</span>
+                  <span>Retake Same Mix (Reshuffled)</span>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setScreen('welcome')}
-                  className={`w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border font-bold text-sm sm:text-base transition-all ${
+                  className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl border font-semibold text-sm transition-colors cursor-pointer ${
                     darkMode
-                      ? 'bg-slate-950 border-slate-800 text-slate-200 hover:bg-slate-800'
-                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                      ? 'bg-[#21262f] border-zinc-700/80 text-zinc-200 hover:bg-[#282e39]'
+                      : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
-                  <Home className="w-4 h-4" />
-                  <span>Atur Ulang Porsi Volume</span>
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>Change Volumes & Percentages</span>
                 </button>
               </div>
             </div>
 
-            {/* Review Section */}
+            {/* Detailed Answer Breakdown */}
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                    <CheckSquare className="w-5 h-5 text-sky-500" />
-                    <span>Review &amp; Verifikasi Referensi MATS</span>
-                  </h3>
-                  <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Dilengkapi referensi resmi Volume, Section, dan tingkat kesulitan soal
-                  </p>
-                </div>
+              <h3 className="text-lg font-bold px-1">
+                Answer Review & MATS Part 3 References
+              </h3>
 
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Filter className="w-4 h-4 text-slate-400 mr-1 hidden sm:inline" />
-                  {[
-                    { id: 'all', label: `Semua (${userAnswers.length})` },
-                    { id: 'correct', label: `Benar (${score})` },
-                    { id: 'incorrect', label: `Salah (${wrongChosenCount})` },
-                    { id: 'timeout', label: `Timeout (${timedOutCount})` }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setReviewFilter(tab.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                        reviewFilter === tab.id
-                          ? 'bg-sky-600 border-sky-500 text-white'
-                          : darkMode
-                          ? 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {filteredReviewAnswers.length === 0 ? (
+              {answerHistory.map((item, idx) => (
                 <div
-                  className={`rounded-2xl border p-8 text-center text-sm ${
-                    darkMode
-                      ? 'bg-slate-900/60 border-slate-800 text-slate-400'
-                      : 'bg-white border-slate-200 text-slate-500'
+                  key={`${item.questionId}-${idx}`}
+                  className={`p-5 rounded-2xl border transition-colors ${
+                    item.isCorrect
+                      ? darkMode
+                        ? 'bg-[#1b1f26] border-emerald-500/25'
+                        : 'bg-white border-emerald-200/80'
+                      : darkMode
+                      ? 'bg-[#1b1f26] border-rose-500/30'
+                      : 'bg-white border-rose-200/80'
                   }`}
                 >
-                  Tidak ada soal pada kategori filter yang dipilih.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {filteredReviewAnswers.map((item) => {
-                    const isExpanded = !!expandedItems[item.originalIndex];
-
-                    return (
-                      <div
-                        key={item.originalIndex}
-                        className={`rounded-2xl border overflow-hidden transition-colors ${
-                          darkMode
-                            ? 'bg-slate-900/90 border-slate-800'
-                            : 'bg-white border-slate-200 shadow-sm'
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                          item.isCorrect
+                            ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-300'
+                            : 'bg-rose-500/12 text-rose-600 dark:text-rose-300'
                         }`}
                       >
-                        <button
-                          type="button"
-                          onClick={() => toggleExpandItem(item.originalIndex)}
-                          className="w-full p-4 sm:p-5 flex items-start sm:items-center justify-between gap-4 text-left"
-                        >
-                          <div className="flex items-start gap-3">
-                            {item.isCorrect ? (
-                              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                            ) : item.timedOut ? (
-                              <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                            )}
-
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <span className="text-xs font-mono font-bold text-sky-500">
-                                  Soal #{item.originalIndex + 1}
-                                </span>
-                                <span
-                                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${getDifficultyBadgeStyle(
-                                    item.difficulty
-                                  )}`}
-                                >
-                                  {item.difficulty}
-                                </span>
-                                <span
-                                  className={`text-[11px] font-mono px-2 py-0.5 rounded-md border ${
-                                    darkMode
-                                      ? 'bg-sky-500/10 text-sky-300 border-sky-500/30'
-                                      : 'bg-sky-50 text-sky-700 border-sky-200'
-                                  }`}
-                                >
-                                  {item.reference}
-                                </span>
-                                {item.timedOut && (
-                                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-semibold">
-                                    Waktu Habis (15s)
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm sm:text-base font-semibold leading-snug">
-                                {item.question}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div
-                            className={`p-1.5 rounded-lg shrink-0 ${
-                              darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </div>
-                        </button>
-
-                        {isExpanded && (
-                          <div
-                            className={`px-4 sm:px-5 pb-5 pt-2 border-t space-y-3 ${
-                              darkMode
-                                ? 'border-slate-800/80 bg-slate-950/40'
-                                : 'border-slate-100 bg-slate-50/60'
-                            }`}
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div
-                                className={`p-3 rounded-xl border ${
-                                  item.isCorrect
-                                    ? darkMode
-                                      ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-                                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                                    : item.timedOut
-                                    ? darkMode
-                                      ? 'bg-amber-950/30 border-amber-500/40 text-amber-200'
-                                      : 'bg-amber-50 border-amber-200 text-amber-900'
-                                    : darkMode
-                                    ? 'bg-rose-950/30 border-rose-500/40 text-rose-200'
-                                    : 'bg-rose-50 border-rose-200 text-rose-900'
-                                }`}
-                              >
-                                <div className="text-xs font-bold uppercase tracking-wider opacity-75 mb-1">
-                                  Jawaban Anda
-                                </div>
-                                <div className="font-medium">
-                                  {item.selectedOption === -1
-                                    ? 'Tidak terjawab (Batas waktu 15 detik habis)'
-                                    : `${OPTION_LETTERS[item.selectedOption]}. ${
-                                        item.options[item.selectedOption]
-                                      }`}
-                                </div>
-                              </div>
-
-                              <div
-                                className={`p-3 rounded-xl border ${
-                                  darkMode
-                                    ? 'bg-emerald-950/25 border-emerald-500/40 text-emerald-200'
-                                    : 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
-                                }`}
-                              >
-                                <div className="text-xs font-bold uppercase tracking-wider text-emerald-500 mb-1">
-                                  Jawaban Benar (Standar MATS)
-                                </div>
-                                <div className="font-medium">
-                                  {OPTION_LETTERS[item.correctOption]}.{' '}
-                                  {item.options[item.correctOption]}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div
-                              className={`p-3.5 rounded-xl border text-sm ${
-                                darkMode
-                                  ? 'bg-slate-900 border-slate-800 text-slate-300'
-                                  : 'bg-white border-slate-200 text-slate-700'
-                              }`}
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                                <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-sky-500">
-                                  <BookOpen className="w-3.5 h-3.5" />
-                                  <span>Referensi: {item.reference}</span>
-                                </span>
-                                <span className="text-[11px] font-semibold text-emerald-500">
-                                  ✓ MATS Part 3 ({item.volume})
-                                </span>
-                              </div>
-                              <p className="leading-relaxed">{item.explanation}</p>
-                            </div>
-                          </div>
+                        {item.isCorrect ? (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        ) : (
+                          <XCircle className="w-3.5 h-3.5" />
                         )}
+                        Item #{idx + 1} • {item.isCorrect ? 'Correct' : 'Incorrect'}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${getDifficultyBadge(
+                          item.difficulty
+                        )}`}
+                      >
+                        {item.difficulty}
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-slate-400">
+                      {item.reference} • {item.category}
+                    </span>
+                  </div>
+
+                  <p className="font-semibold text-sm sm:text-base mb-3">{item.question}</p>
+
+                  <div className="space-y-1.5 text-xs sm:text-sm mb-3">
+                    <div className="flex items-start gap-2">
+                      <span className="font-semibold text-slate-400 min-w-[115px]">
+                        Your Answer:
+                      </span>
+                      <span
+                        className={
+                          item.isCorrect
+                            ? 'text-emerald-600 dark:text-emerald-300 font-semibold'
+                            : 'text-rose-600 dark:text-rose-300 font-semibold'
+                        }
+                      >
+                        {item.selectedText}
+                      </span>
+                    </div>
+                    {!item.isCorrect && (
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold text-slate-400 min-w-[115px]">
+                          Correct Answer:
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-300 font-semibold">
+                          {item.correctText}
+                        </span>
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
+
+                  <div
+                    className={`p-3 rounded-xl text-xs leading-relaxed ${
+                      darkMode ? 'bg-[#21262f] text-zinc-300' : 'bg-slate-50/90 text-slate-600'
+                    }`}
+                  >
+                    <strong>Explanation:</strong> {item.explanation}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}
